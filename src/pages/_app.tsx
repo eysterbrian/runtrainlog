@@ -1,17 +1,16 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
-import Head from 'next/head';
 import { ChakraProvider } from '@chakra-ui/react';
 import { Provider as NextAuthProvider } from 'next-auth/client';
+import customTheme from 'theme/theme';
+import HeaderNav from 'components/headerNav';
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
-      <Head>
-        <link rel="shortcut icon" href="/images/favicon.ico" />
-      </Head>
       <NextAuthProvider session={pageProps.session}>
-        <ChakraProvider>
+        <ChakraProvider theme={customTheme}>
+          <HeaderNav />
           <Component {...pageProps} />
         </ChakraProvider>
       </NextAuthProvider>
