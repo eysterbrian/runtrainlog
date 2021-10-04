@@ -11,8 +11,14 @@ import {
   VisuallyHidden,
   CloseButton,
   Avatar,
+  Tooltip,
   Icon,
   IconButton,
+  Menu,
+  MenuList,
+  MenuItem,
+  MenuButton,
+  MenuDivider,
 } from '@chakra-ui/react';
 import {
   AiFillBell,
@@ -24,7 +30,7 @@ import {
 import { MdRunCircle } from 'react-icons/md';
 import { BsPlus } from 'react-icons/bs';
 import React from 'react';
-import { signIn, useSession } from 'next-auth/client';
+import { signIn, signOut, useSession } from 'next-auth/client';
 
 const MobileNav: React.VFC<{ showMobileNav: UseDisclosureReturn }> = ({
   showMobileNav,
@@ -84,6 +90,12 @@ const HeaderNav: React.VFC = () => {
   const showMobileNav = useDisclosure();
   const [session, sessionStatus] = useSession();
 
+  const profileTooltip = session && (
+    <>
+      {session.user?.name} <br /> <em>{session.user?.email}</em>
+    </>
+  );
+
   return (
     <React.Fragment>
       <chakra.header
@@ -129,11 +141,31 @@ const HeaderNav: React.VFC = () => {
                   New Run
                 </Button>
 
-                <Avatar
-                  size="sm"
-                  name={session.user?.name || 'Unknown'}
-                  src={session.user?.image || undefined}
-                />
+                <Flex alignItems={'center'}>
+                  <Menu>
+                    <Tooltip label={profileTooltip}>
+                      <MenuButton
+                        as={Button}
+                        rounded={'full'}
+                        variant={'link'}
+                        cursor={'pointer'}
+                        minW={0}>
+                        <Avatar
+                          size="sm"
+                          name={session.user?.name || 'Unknown'}
+                          src={session.user?.image || undefined}
+                        />
+                      </MenuButton>
+                    </Tooltip>
+                    <MenuList>
+                      <MenuItem>
+                        {session.user?.name || 'Unknown'}&apos;s Profile
+                      </MenuItem>
+                      <MenuDivider />
+                      <MenuItem onClick={() => signOut()}>Log Out</MenuItem>
+                    </MenuList>
+                  </Menu>
+                </Flex>
               </HStack>
             )
           ) : (
