@@ -4,6 +4,7 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { Provider as NextAuthProvider } from 'next-auth/client';
 import customTheme from 'theme/theme';
 import HeaderNav from 'components/headerNav';
+import Footer from 'components/footer';
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -12,6 +13,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <ChakraProvider theme={customTheme}>
           <HeaderNav />
           <Component {...pageProps} />
+          <Footer />
         </ChakraProvider>
       </NextAuthProvider>
     </>
