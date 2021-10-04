@@ -1,213 +1,108 @@
-import type { NextPage } from 'next';
-import Head from 'next/head';
-import Image from 'next/image';
-import styles from '../styles/Home.module.css';
-import { signOut, useSession } from 'next-auth/client';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
+import {
+  Container,
+  SimpleGrid,
+  Image,
+  Flex,
+  Heading,
+  Text,
+  Stack,
+  StackDivider,
+  Icon,
+  useColorModeValue,
+} from '@chakra-ui/react';
+import {
+  IoAnalyticsSharp,
+  IoLogoBitcoin,
+  IoSearchSharp,
+} from 'react-icons/io5';
+import { ReactElement } from 'react';
+import { BsSmartwatch } from 'react-icons/bs';
+import { FaLaptopMedical } from 'react-icons/fa';
+
+interface FeatureProps {
+  text: string;
+  iconBg: string;
+  icon?: ReactElement;
+}
+
+const Feature = ({ text, icon, iconBg }: FeatureProps) => {
+  return (
+    <Stack direction={'row'} align={'center'}>
+      <Flex
+        w={8}
+        h={8}
+        align={'center'}
+        justify={'center'}
+        rounded={'full'}
+        bg={iconBg}>
+        {icon}
+      </Flex>
+      <Text fontWeight={600}>{text}</Text>
+    </Stack>
+  );
+};
 
 const Home: NextPage = () => {
-  const router = useRouter();
-  const [session, loading] = useSession();
-
-  const isActive: (pathname: string) => boolean = (pathname) =>
-    router.pathname === pathname;
-
-  let left = (
-    <div className="left">
-      <Link href="/">
-        <a className="bold" data-active={isActive('/')}>
-          Feed
-        </a>
-      </Link>
-      <style jsx>{`
-        .bold {
-          font-weight: bold;
-        }
-
-        a {
-          text-decoration: none;
-          color: var(--geist-foreground);
-          display: inline-block;
-        }
-
-        .left a[data-active='true'] {
-          color: gray;
-        }
-
-        a + a {
-          margin-left: 1rem;
-        }
-      `}</style>
-    </div>
-  );
-
-  let right = null;
-
-  if (loading) {
-    left = (
-      <div className="left">
-        <Link href="/">
-          <a className="bold" data-active={isActive('/')}>
-            Feed
-          </a>
-        </Link>
-        <style jsx>{`
-          .bold {
-            font-weight: bold;
-          }
-
-          a {
-            text-decoration: none;
-            color: var(--geist-foreground);
-            display: inline-block;
-          }
-
-          .left a[data-active='true'] {
-            color: gray;
-          }
-
-          a + a {
-            margin-left: 1rem;
-          }
-        `}</style>
-      </div>
-    );
-    right = (
-      <div className="right">
-        <p>Validating session ...</p>
-        <style jsx>{`
-          .right {
-            margin-left: auto;
-          }
-        `}</style>
-      </div>
-    );
-  }
-
-  if (!session) {
-    right = (
-      <div className="right">
-        <Link href="/api/auth/signin">
-          <a data-active={isActive('/signup')}>Log in</a>
-        </Link>
-        <style jsx>{`
-          a {
-            text-decoration: none;
-            color: var(--geist-foreground);
-            display: inline-block;
-          }
-
-          a + a {
-            margin-left: 1rem;
-          }
-
-          .right {
-            margin-left: auto;
-          }
-
-          .right a {
-            border: 1px solid var(--geist-foreground);
-            padding: 0.5rem 1rem;
-            border-radius: 3px;
-          }
-        `}</style>
-      </div>
-    );
-  }
-
-  if (session) {
-    left = (
-      <div className="left">
-        <Link href="/">
-          <a className="bold" data-active={isActive('/')}>
-            Feed
-          </a>
-        </Link>
-        <Link href="/runs">
-          <a data-active={isActive('/runs')}>My runs</a>
-        </Link>
-        <style jsx>{`
-          .bold {
-            font-weight: bold;
-          }
-
-          a {
-            text-decoration: none;
-            color: var(--geist-foreground);
-            display: inline-block;
-          }
-
-          .left a[data-active='true'] {
-            color: gray;
-          }
-
-          a + a {
-            margin-left: 1rem;
-          }
-        `}</style>
-      </div>
-    );
-    right = (
-      <div className="right">
-        <p>
-          {session.user.name} ({session.user.email})
-        </p>
-        <Link href="/create">
-          <button>
-            <a>New run</a>
-          </button>
-        </Link>
-        <button onClick={() => signOut()}>
-          <a>Log out</a>
-        </button>
-        <style jsx>{`
-          a {
-            text-decoration: none;
-            color: var(--geist-foreground);
-            display: inline-block;
-          }
-
-          p {
-            display: inline-block;
-            font-size: 13px;
-            padding-right: 1rem;
-          }
-
-          a + a {
-            margin-left: 1rem;
-          }
-
-          .right {
-            margin-left: auto;
-          }
-
-          .right a {
-            border: 1px solid var(--geist-foreground);
-            padding: 0.5rem 1rem;
-            border-radius: 3px;
-          }
-
-          button {
-            border: none;
-          }
-        `}</style>
-      </div>
-    );
-  }
-
   return (
-    <nav>
-      {left}
-      {right}
-      <style jsx>{`
-        nav {
-          display: flex;
-          padding: 2rem;
-          align-items: center;
-        }
-      `}</style>
-    </nav>
+    <Container maxW={'5xl'} py={12}>
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10}>
+        <Stack spacing={4}>
+          <Text
+            textTransform={'uppercase'}
+            color={'blue.400'}
+            fontWeight={600}
+            fontSize={'sm'}
+            bg={useColorModeValue('blue.50', 'blue.900')}
+            p={2}
+            alignSelf={'flex-start'}
+            rounded={'md'}>
+            Our Story
+          </Text>
+          <Heading>A Training Tool for Runners</Heading>
+          <Text color={'gray.500'} fontSize={'lg'}>
+            Replace your messy training notebooks and complex spreadsheets, with
+            a simple web training log
+          </Text>
+          <Stack
+            spacing={4}
+            divider={
+              <StackDivider
+                borderColor={useColorModeValue('gray.100', 'gray.700')}
+              />
+            }>
+            <Feature
+              icon={
+                <Icon as={IoAnalyticsSharp} color={'brand.300'} w={5} h={5} />
+              }
+              iconBg={useColorModeValue('secondary.100', 'secondary.900')}
+              text={'Analyze your weekly running volume'}
+            />
+            <Feature
+              icon={
+                <Icon as={FaLaptopMedical} color={'brand.500'} w={5} h={5} />
+              }
+              iconBg={useColorModeValue('secondary.100', 'secondary.900')}
+              text={'Avoid painful overtraining injuries'}
+            />
+            <Feature
+              icon={<Icon as={BsSmartwatch} color={'brand.500'} w={5} h={5} />}
+              iconBg={useColorModeValue('secondary.100', 'secondary.900')}
+              text={'Integrate with FitBit'}
+            />
+          </Stack>
+        </Stack>
+        <Flex>
+          <Image
+            rounded={'md'}
+            alt={'Trail runner in the mountains'}
+            src={
+              'https://images.unsplash.com/photo-1560354790-a403c5a97e0f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=3008&q=80'
+            }
+            objectFit={'cover'}
+          />
+        </Flex>
+      </SimpleGrid>
+    </Container>
   );
 };
 
