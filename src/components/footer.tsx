@@ -47,10 +47,17 @@ const SocialButton = ({
   );
 };
 
+/*
+ * Footer will always appear at bottom of screen
+ */
 export default function Footer() {
   return (
     <Box
       bg={useColorModeValue('gray.50', 'gray.900')}
+      position="absolute"
+      bottom={0}
+      left={0}
+      right={0}
       color={useColorModeValue('gray.700', 'gray.200')}>
       <Container
         as={Stack}
@@ -61,7 +68,7 @@ export default function Footer() {
         justify={{ base: 'center', md: 'space-between' }}
         align={{ base: 'center', md: 'center' }}>
         <Logo />
-        <Text>&copy; 2020 Brian Eyster. All rights reserved</Text>
+        <Text>&copy; 2021 Brian Eyster. All rights reserved</Text>
         <Stack direction={'row'} spacing={2}>
           <SocialButton
             label={'Twitter'}
