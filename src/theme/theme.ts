@@ -1,4 +1,4 @@
-import { extendTheme, ThemeConfig } from '@chakra-ui/react';
+import { extendTheme, ThemeConfig, theme } from '@chakra-ui/react';
 
 const config: ThemeConfig = {
   useSystemColorMode: true,
@@ -31,4 +31,19 @@ const colors = {
   },
 };
 
-export default extendTheme({ config, colors });
+const styles = {
+  global: {
+    // '.top-container': {
+    //   pb: '16',
+    //   minHeight: '100vh',
+    //   position: 'relative',
+    // },
+  },
+};
+
+const fonts = {
+  heading: `Ubuntu, ${theme.fonts.heading}`,
+  body: `Roboto, ${theme.fonts.body}`,
+};
+
+export default extendTheme({ config, colors, fonts, styles });
