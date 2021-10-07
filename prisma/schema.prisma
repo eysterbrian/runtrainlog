@@ -50,6 +50,8 @@ model User {
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
   sessions      Session[]
+  fitbitAccount FitbitAccount?
+  workouts     Workout[]
 }
 
 model VerificationRequest {
@@ -66,3 +68,59 @@ model VerificationRequest {
 //
 // END next-auth
 //
+
+model FitbitAccount {
+  id          String    @id
+  userId      String
+  token     Json?
+  user     User      @relation(fields: [userId], references: [id])
+}
+
+model Workout {
+  id         String   @id @default(cuid())
+  fitbitLogId  String?
+  userId    String
+  user     User      @relation(fields: [userId], references: [id])
+
+  // Objective Workout Data
+  startTime   DateTime?
+  activeDuration   Int?
+  distance   Float?
+  elevation   Float?
+  pace    Float?
+  avgHeartRate   Int?
+
+  // Descriptions  
+  modality  WorkoutModality?
+  workoutType  WorkoutType?
+  description  String?
+  location  String?
+  listening String?
+  strengthExercises  String?
+  personalFeelings   String?
+
+  // Ratings
+  ratingEnergy Int?
+  ratingDifficulty Int?
+  ratingGeneral Int?
+}
+
+enum WorkoutModality {
+  RUN
+  BIKE
+  INLINE_SKATE
+  HIKE
+  SPINNING
+  ELLIPTICAL
+  TREADMILL
+}
+
+enum WorkoutType {
+  LONG
+  SPEED
+  TEMPO
+  VERTICAL
+  RECOVERY
+  BASE
+  CROSSTRAIN
+}

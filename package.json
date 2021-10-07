@@ -13,7 +13,7 @@
     "@emotion/react": "^11.4.1",
     "@emotion/styled": "^11.3.0",
     "@next-auth/prisma-adapter": "^0.5.4",
-    "@prisma/client": "^3.1.1",
+    "@prisma/client": "^3.2.1",
     "crypto": "^1.0.1",
     "framer-motion": "^4.1.17",
     "next": "11.1.2",
@@ -24,13 +24,18 @@
     "simple-oauth2": "^4.2.0"
   },
   "devDependencies": {
+    "@types/faker": "^5.5.8",
     "@types/node": "^16.10.2",
     "@types/react": "17.0.26",
     "@types/simple-oauth2": "^4.1.1",
     "eslint": "7.32.0",
     "eslint-config-next": "11.1.2",
-    "prisma": "^3.1.1",
+    "faker": "^5.5.3",
+    "prisma": "^3.2.1",
     "ts-node": "^10.2.1",
     "typescript": "4.4.3"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   }
 }
