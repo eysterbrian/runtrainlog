@@ -1,4 +1,4 @@
-import prisma from 'api/clients/prisma';
+import prisma from 'lib/server/prisma';
 import { NextApiHandler } from 'next';
 import { getSession } from 'next-auth/client';
 

@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import NextAuth from 'next-auth';
 import Providers from 'next-auth/providers';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import prisma from 'api/clients/prisma';
+import prisma from 'lib/server/prisma';
 
 export default NextAuth({
   providers: [
@@ -12,4 +12,5 @@ export default NextAuth({
     }),
   ],
   adapter: PrismaAdapter(prisma),
+  debug: true,
 });
