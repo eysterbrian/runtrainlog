@@ -12,5 +12,16 @@ export default NextAuth({
     }),
   ],
   adapter: PrismaAdapter(prisma),
+  callbacks: {
+    session(session, user) {
+      return {
+        expires: session.expires,
+        user: {
+          ...session.user,
+          id: user.id as string,
+        },
+      };
+    },
+  },
   debug: true,
 });
