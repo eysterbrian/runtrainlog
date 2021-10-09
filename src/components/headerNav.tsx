@@ -162,7 +162,9 @@ const HeaderNav: React.VFC = () => {
                         {session.user?.name || 'Unknown'}&apos;s Profile
                       </MenuItem>
                       <MenuDivider />
-                      <MenuItem onClick={() => signOut()}>Log Out</MenuItem>
+                      <MenuItem onClick={() => signOut({ callbackUrl: '/' })}>
+                        Log Out
+                      </MenuItem>
                     </MenuList>
                   </Menu>
                 </Flex>

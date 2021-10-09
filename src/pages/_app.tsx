@@ -8,8 +8,14 @@ import queryClient from 'lib/client/react-query';
 import { QueryClientProvider } from 'react-query';
 import { ReactQueryDevtools } from 'react-query/devtools';
 import { Hydrate } from 'react-query/hydration';
+import { NextComponentMaybeAuth } from 'types/auth';
+import { AuthRequired } from 'components/AuthRequired';
 
-function MyApp({ Component, pageProps }: AppProps) {
+function MyApp({
+  Component,
+  pageProps,
+}: Omit<AppProps, 'Component'> & { Component: NextComponentMaybeAuth }) {
+  console.log(`MyApp child page: ${Component.authRequired}`);
   return (
     <>
       <QueryClientProvider client={queryClient}>
@@ -18,7 +24,13 @@ function MyApp({ Component, pageProps }: AppProps) {
           <NextAuthProvider session={pageProps.session}>
             <ChakraProvider theme={customTheme}>
               <MainLayout>
-                <Component {...pageProps} />
+                {Component.authRequired ? (
+                  <AuthRequired>
+                    <Component {...pageProps} />
+                  </AuthRequired>
+                ) : (
+                  <Component {...pageProps} />
+                )}
               </MainLayout>
             </ChakraProvider>
           </NextAuthProvider>

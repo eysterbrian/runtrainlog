@@ -4,8 +4,9 @@ import fetchWorkouts from 'lib/queries/fetchWorkouts';
 import { useSession } from 'next-auth/client';
 import { useQuery } from 'react-query';
 import Head from 'next/head';
+import { ComponentWithAuth } from 'types/auth';
 
-const WorkoutsPage: React.VFC = () => {
+const WorkoutsPage: ComponentWithAuth = () => {
   const [session, loading] = useSession();
   const { data } = useQuery('workouts', fetchWorkouts);
   return (
@@ -18,5 +19,5 @@ const WorkoutsPage: React.VFC = () => {
     </>
   );
 };
-
+WorkoutsPage.authRequired = true;
 export default WorkoutsPage;
