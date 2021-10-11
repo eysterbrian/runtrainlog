@@ -9,6 +9,7 @@ import {
   Tr,
   Th,
   Td,
+  Badge,
   chakra,
   VisuallyHidden,
 } from '@chakra-ui/react';
@@ -38,6 +39,31 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       {
         Header: 'Description',
         accessor: 'description',
+      },
+      {
+        Header: 'Modality',
+        accessor: 'modality',
+        Cell: ({ value }) => {
+          if (!value) return 'Unknown';
+          const colorScheme = value === 'RUN' ? 'green' : 'yellow';
+          return (
+            <Badge variant="solid" colorScheme={colorScheme}>
+              {value}
+            </Badge>
+          );
+        },
+      },
+      {
+        Header: 'Workout Type',
+        accessor: 'workoutType',
+        Cell: ({ value }) => {
+          if (!value) return 'Unknown';
+          return (
+            <Badge variant="outline" colorScheme="brand">
+              {value}
+            </Badge>
+          );
+        },
       },
       {
         Header: 'Date',
