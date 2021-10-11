@@ -7,6 +7,7 @@ import Head from 'next/head';
 import { ComponentWithAuth } from 'types/auth';
 import { TestTable } from 'components/TestTable';
 import { WorkoutsTable } from 'components/WorkoutsTable';
+import { Loading } from 'components/Loading';
 
 const WorkoutsPage: ComponentWithAuth = () => {
   const [session] = useSession();
@@ -20,10 +21,9 @@ const WorkoutsPage: ComponentWithAuth = () => {
       <Head>
         <title>All workouts</title>
       </Head>
-      <h2>Workouts Page!</h2>
 
       {workoutsQuery.isLoading ? (
-        <div>Loading...</div>
+        <Loading />
       ) : (
         <>
           <WorkoutsTable workouts={workoutsQuery.data.workouts} />

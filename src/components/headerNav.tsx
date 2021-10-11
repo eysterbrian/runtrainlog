@@ -172,7 +172,9 @@ const HeaderNav: React.VFC = () => {
             )
           ) : (
             <HStack spacing={3} display="flex" alignItems="center">
-              <Button colorScheme="secondary" onClick={() => signIn('google')}>
+              <Button
+                colorScheme="secondary"
+                onClick={() => signIn('google', { callbackUrl: '/workouts' })}>
                 Login
               </Button>
             </HStack>

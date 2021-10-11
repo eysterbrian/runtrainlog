@@ -1,5 +1,6 @@
 import React from 'react';
 import { signIn, useSession } from 'next-auth/client';
+import { Loading } from './Loading';
 
 /**
  * Only shows child component once user is logged-in, and prompts
@@ -20,7 +21,6 @@ export const AuthRequired = ({
     if (loading) return;
 
     // If not authenticated, force log in
-    // TODO: Extract login to its own component that uses a modal popup
     if (!isUser) signIn('google');
   }, [isUser, loading]);
 
@@ -31,8 +31,7 @@ export const AuthRequired = ({
 
   // Session is being fetched, or no user.
   // If no user, useEffect() will redirect.
-  // TODO: Loading spinner
-  return <div>Loading...</div>;
+  return <Loading />;
 };
 
 /**
