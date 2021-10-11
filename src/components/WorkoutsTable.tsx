@@ -23,12 +23,12 @@ type Props = {
 
 const StarRating: React.FC<{ value: number }> = ({ value }) => {
   return (
-    <>
+    <chakra.span whiteSpace="nowrap">
       <VisuallyHidden>{value}</VisuallyHidden>
       {[...Array(value)].map((_) => (
         <StarIcon />
       ))}
-    </>
+    </chakra.span>
   );
 };
 
