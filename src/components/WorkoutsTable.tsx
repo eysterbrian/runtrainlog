@@ -15,6 +15,7 @@ import {
 import { TriangleDownIcon, TriangleUpIcon, StarIcon } from '@chakra-ui/icons';
 import { useTable, useSortBy, Column } from 'react-table';
 import { Workout } from '@prisma/client';
+import { format as formatDate, parseISO } from 'date-fns';
 
 type Props = {
   workouts: Workout[];
@@ -37,6 +38,17 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       {
         Header: 'Description',
         accessor: 'description',
+      },
+      {
+        Header: 'Date',
+        accessor: 'startTime',
+        Cell: ({ value }) => {
+          // Type of value isn't really Date, despite using Workout as the type
+          // The API returns the value as JSON which converts it to type string
+          // So we force cast of the value to a string then parse it.
+          const date: Date = parseISO(value as unknown as string);
+          return !value ? 'Unknown Date' : formatDate(date, 'EEEE, M/d/y');
+        },
       },
       { Header: 'Distance (miles)', accessor: 'distance', isNumeric: true },
       { Header: 'Elevation (feet)', accessor: 'elevation', isNumeric: true },
