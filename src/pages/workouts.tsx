@@ -6,6 +6,7 @@ import { useQuery } from 'react-query';
 import Head from 'next/head';
 import { ComponentWithAuth } from 'types/auth';
 import { TestTable } from 'components/TestTable';
+import { WorkoutsTable } from 'components/WorkoutsTable';
 
 const WorkoutsPage: ComponentWithAuth = () => {
   const [session] = useSession();
@@ -25,8 +26,7 @@ const WorkoutsPage: ComponentWithAuth = () => {
         <div>Loading...</div>
       ) : (
         <>
-          <TestTable />
-          <pre>{JSON.stringify(workoutsQuery.data, null, 2)}</pre>
+          <WorkoutsTable workouts={workoutsQuery.data.workouts} />
         </>
       )}
     </>

@@ -1,3 +1,7 @@
+//
+// @types/react-query doesn't include types for all plugins.  instead they must be added manually via this file.
+// See: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react-table#configuration-using-declaration-merging
+//
 import {
   UseColumnOrderInstanceProps,
   UseColumnOrderState,
@@ -47,6 +51,12 @@ import {
   UseSortByOptions,
   UseSortByState,
 } from 'react-table';
+
+interface CustomColumnFields {
+  // Add custom property to column.  See:
+  // https://github.com/tannerlinsley/react-table/discussions/2421
+  isNumeric?: boolean;
+}
 
 declare module 'react-table' {
   // take this file as-is, or comment out the sections that don't apply to your plugin configuration
@@ -105,18 +115,16 @@ declare module 'react-table' {
       UseGlobalFiltersColumnOptions<D>,
       UseGroupByColumnOptions<D>,
       UseResizeColumnsColumnOptions<D>,
-      UseSortByColumnOptions<D> {}
+      UseSortByColumnOptions<D>,
+      CustomColumnFields {} // Type of additional column properties
 
   export interface ColumnInstance<
     D extends Record<string, unknown> = Record<string, unknown>
   > extends UseFiltersColumnProps<D>,
       UseGroupByColumnProps<D>,
       UseResizeColumnsColumnProps<D>,
-      UseSortByColumnProps<D> {
-    // Add custom property to column.  See:
-    // https://github.com/tannerlinsley/react-table/discussions/2421
-    isNumeric?: boolean;
-  }
+      UseSortByColumnProps<D>,
+      CustomColumnFields {} // Type of additional column properties
 
   export interface Cell<
     D extends Record<string, unknown> = Record<string, unknown>,
