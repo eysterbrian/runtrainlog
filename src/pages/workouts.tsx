@@ -8,6 +8,7 @@ import { ComponentWithAuth } from 'types/auth';
 import { TestTable } from 'components/TestTable';
 import { WorkoutsTable } from 'components/WorkoutsTable';
 import { Loading } from 'components/Loading';
+import { Box } from '@chakra-ui/react';
 
 const WorkoutsPage: ComponentWithAuth = () => {
   const [session] = useSession();
@@ -25,9 +26,9 @@ const WorkoutsPage: ComponentWithAuth = () => {
       {workoutsQuery.isLoading ? (
         <Loading />
       ) : (
-        <>
+        <Box py={6} px={4}>
           <WorkoutsTable workouts={workoutsQuery.data.workouts} />
-        </>
+        </Box>
       )}
     </>
   );
