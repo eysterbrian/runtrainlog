@@ -1,6 +1,3 @@
-// react-table returns the key prop automatically
-/* eslint react/jsx-key: 0 */
-
 import React from 'react';
 import {
   Table,
@@ -26,8 +23,8 @@ const StarRating: React.FC<{ value: number }> = ({ value }) => {
   return (
     <chakra.span whiteSpace="nowrap">
       <VisuallyHidden>{value}</VisuallyHidden>
-      {[...Array(value)].map((_) => (
-        <StarIcon />
+      {[...Array(value)].map((_, idx) => (
+        <StarIcon key={idx} />
       ))}
     </chakra.span>
   );
@@ -114,6 +111,8 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   const { getTableBodyProps, getTableProps, headerGroups, rows, prepareRow } =
     useTable({ columns, data: workouts }, useSortBy);
 
+  // react-table returns the key prop automatically
+  /* eslint-disable react/jsx-key */
   return (
     <>
       <Table {...getTableProps()}>
@@ -159,3 +158,4 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     </>
   );
 };
+/* eslint-enable react/jsx-key */
