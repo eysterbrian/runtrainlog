@@ -2,13 +2,33 @@
 /* eslint react/jsx-key: 0 */
 
 import React from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, chakra } from '@chakra-ui/react';
-import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
+import {
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  chakra,
+  VisuallyHidden,
+} from '@chakra-ui/react';
+import { TriangleDownIcon, TriangleUpIcon, StarIcon } from '@chakra-ui/icons';
 import { useTable, useSortBy, Column } from 'react-table';
 import { Workout } from '@prisma/client';
 
 type Props = {
   workouts: Workout[];
+};
+
+const StarRating: React.FC<{ value: number }> = ({ value }) => {
+  return (
+    <>
+      <VisuallyHidden>{value}</VisuallyHidden>
+      {[...Array(value)].map((_) => (
+        <StarIcon />
+      ))}
+    </>
+  );
 };
 
 export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
@@ -21,12 +41,28 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       { Header: 'Distance (miles)', accessor: 'distance', isNumeric: true },
       { Header: 'Elevation (feet)', accessor: 'elevation', isNumeric: true },
       { Header: 'Pace', accessor: 'pace', isNumeric: true },
-      { Header: 'Energy', accessor: 'ratingEnergy', isNumeric: true },
-      { Header: 'Difficulty', accessor: 'ratingDifficulty', isNumeric: true },
-      { Header: 'General', accessor: 'ratingGeneral', isNumeric: true },
+      {
+        Header: 'Energy',
+        accessor: 'ratingEnergy',
+        isNumeric: true,
+        Cell: StarRating,
+      },
+      {
+        Header: 'Difficulty',
+        accessor: 'ratingDifficulty',
+        isNumeric: true,
+        Cell: StarRating,
+      },
+      {
+        Header: 'General',
+        accessor: 'ratingGeneral',
+        isNumeric: true,
+        Cell: StarRating,
+      },
     ],
     []
   );
+  const data = React.useMemo<Workout[]>(() => workouts, [workouts]);
 
   const { getTableBodyProps, getTableProps, headerGroups, rows, prepareRow } =
     useTable({ columns, data: workouts }, useSortBy);
