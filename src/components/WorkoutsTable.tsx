@@ -6,6 +6,7 @@ import {
   Tr,
   Th,
   Td,
+  HStack,
   Badge,
   chakra,
   VisuallyHidden,
@@ -14,19 +15,24 @@ import { TriangleDownIcon, TriangleUpIcon, StarIcon } from '@chakra-ui/icons';
 import { useTable, useSortBy, Column } from 'react-table';
 import { Workout } from '@prisma/client';
 import { parseISO, format, addSeconds } from 'date-fns';
+import { TRatingsIcon, getRatingsIcon } from 'lib/utils/ratings';
 
 type Props = {
   workouts: Workout[];
 };
 
-const StarRating: React.FC<{ value: number }> = ({ value }) => {
+const StarRating: React.FC<{ value: number; iconType: TRatingsIcon }> = ({
+  value,
+  iconType,
+}) => {
+  const MyIcon = getRatingsIcon(iconType);
   return (
-    <chakra.span whiteSpace="nowrap">
+    <HStack wrap="nowrap" justifyContent="flex-end">
       <VisuallyHidden>{value}</VisuallyHidden>
-      {[...Array(value)].map((_, idx) => (
-        <StarIcon key={idx} />
+      {Array.from({ length: value }, (_, idx) => (
+        <MyIcon key={idx} />
       ))}
-    </chakra.span>
+    </HStack>
   );
 };
 
