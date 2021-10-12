@@ -18,7 +18,7 @@ export const IconRating: React.FC<Props> = ({
   const MyIcon = getRatingsIcon(iconType);
 
   return (
-    <HStack align="center">
+    <HStack align="center" spacing={1} justifyContent="center">
       {Array.from({ length: numOptions }, (_, idx) => {
         const color =
           hover !== -1
