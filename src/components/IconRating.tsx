@@ -15,7 +15,7 @@ export const IconRating: React.FC<Props> = ({
 }) => {
   const [rating, setRating] = React.useState(initValue);
   const [hover, setHover] = React.useState(initValue);
-  let MyIcon = getRatingsIcon(iconType);
+  const MyIcon = getRatingsIcon(iconType);
 
   return (
     <HStack align="center">

@@ -21,20 +21,27 @@ type Props = {
   workouts: Workout[];
 };
 
-const StarRating: React.FC<{ value: number; iconType: TRatingsIcon }> = ({
-  value,
-  iconType,
-}) => {
+/**
+ * HOC that returns a component for use with the Column's Cell option
+ * @param iconType
+ * @returns
+ */
+function getRatingsIconComponent(
+  iconType: TRatingsIcon
+): React.FC<{ value: number }> {
   const MyIcon = getRatingsIcon(iconType);
-  return (
-    <HStack wrap="nowrap" justifyContent="flex-end">
-      <VisuallyHidden>{value}</VisuallyHidden>
-      {Array.from({ length: value }, (_, idx) => (
-        <MyIcon key={idx} />
-      ))}
-    </HStack>
-  );
-};
+  const StarRating: React.FC<{ value: number }> = ({ value }) => {
+    return (
+      <HStack wrap="nowrap" justifyContent="flex-end" spacing={0}>
+        <VisuallyHidden>{value}</VisuallyHidden>
+        {Array.from({ length: value }, (_, idx) => (
+          <MyIcon key={idx} />
+        ))}
+      </HStack>
+    );
+  };
+  return StarRating;
+}
 
 export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   const columns: Array<Column<Workout>> = React.useMemo(
@@ -95,19 +102,19 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         Header: 'Energy',
         accessor: 'ratingEnergy',
         isNumeric: true,
-        Cell: StarRating,
+        Cell: getRatingsIconComponent('Energy'),
       },
       {
         Header: 'Difficulty',
         accessor: 'ratingDifficulty',
         isNumeric: true,
-        Cell: StarRating,
+        Cell: getRatingsIconComponent('Difficulty'),
       },
       {
         Header: 'General',
         accessor: 'ratingGeneral',
         isNumeric: true,
-        Cell: StarRating,
+        Cell: getRatingsIconComponent('Star'),
       },
     ],
     []
