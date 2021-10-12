@@ -31,6 +31,7 @@ import { MdRunCircle } from 'react-icons/md';
 import { BsPlus } from 'react-icons/bs';
 import React from 'react';
 import { signIn, signOut, useSession } from 'next-auth/client';
+import NextLink from 'next/link';
 
 const MobileNav: React.VFC<{ showMobileNav: UseDisclosureReturn }> = ({
   showMobileNav,
@@ -39,15 +40,18 @@ const MobileNav: React.VFC<{ showMobileNav: UseDisclosureReturn }> = ({
 
   return (
     <Box display={{ base: 'inline-flex', md: 'none' }}>
-      <IconButton
-        display={{ base: 'flex', md: 'none' }}
-        aria-label="Open menu"
-        fontSize="20px"
-        color={useColorModeValue('gray.800', 'inherit')}
-        variant="ghost"
-        icon={<AiOutlineMenu />}
-        onClick={showMobileNav.onOpen}
-      />
+      <NextLink href="/" passHref>
+        <IconButton
+          as="a"
+          display={{ base: 'flex', md: 'none' }}
+          aria-label="Open menu"
+          fontSize="20px"
+          color={useColorModeValue('gray.800', 'inherit')}
+          variant="ghost"
+          icon={<AiOutlineMenu />}
+          onClick={showMobileNav.onOpen}
+        />
+      </NextLink>
       <VStack
         pos="absolute"
         top={0}
@@ -67,9 +71,11 @@ const MobileNav: React.VFC<{ showMobileNav: UseDisclosureReturn }> = ({
           justifySelf="self-start"
           onClick={showMobileNav.onClose}
         />
-        <Button w="full" variant="ghost" leftIcon={<AiFillHome />}>
-          Dashboard
-        </Button>
+        <NextLink href="/workouts" passHref>
+          <Button as="a" w="full" variant="ghost" leftIcon={<AiFillHome />}>
+            Dashboard
+          </Button>
+        </NextLink>
         <Button
           w="full"
           variant="solid"
@@ -107,20 +113,28 @@ const HeaderNav: React.VFC = () => {
         <Flex alignItems="center" justifyContent="space-between" mx="auto">
           <HStack display="flex" spacing={3} alignItems="center">
             {session && <MobileNav showMobileNav={showMobileNav} />}
-            <chakra.a
-              href="/"
-              title="Home Page"
-              display="flex"
-              alignItems="center">
-              <Icon as={MdRunCircle} w={12} h={12} color="brand.500" />
-              <VisuallyHidden>Runner&apos;s Log</VisuallyHidden>
-            </chakra.a>
+            <NextLink href="/" passHref>
+              <chakra.a
+                href="/"
+                title="Home Page"
+                display="flex"
+                alignItems="center">
+                <Icon as={MdRunCircle} w={12} h={12} color="brand.500" />
+                <VisuallyHidden>Runner&apos;s Log</VisuallyHidden>
+              </chakra.a>
+            </NextLink>
 
             {session && (
               <HStack spacing={3} display={{ base: 'none', md: 'inline-flex' }}>
-                <Button variant="ghost" leftIcon={<AiFillHome />} size="sm">
-                  Dashboard
-                </Button>
+                <NextLink href="/workouts" passHref>
+                  <Button
+                    as="a"
+                    variant="ghost"
+                    leftIcon={<AiFillHome />}
+                    size="sm">
+                    Dashboard
+                  </Button>
+                </NextLink>
                 <Button
                   variant="solid"
                   colorScheme="brand"
@@ -137,9 +151,11 @@ const HeaderNav: React.VFC = () => {
           {session ? (
             !showMobileNav.isOpen && (
               <HStack spacing={3} display="flex" alignItems="center">
-                <Button colorScheme="secondary" leftIcon={<BsPlus />}>
-                  New Run
-                </Button>
+                <NextLink href="/addWorkout" passHref>
+                  <Button as="a" colorScheme="secondary" leftIcon={<BsPlus />}>
+                    New Run
+                  </Button>
+                </NextLink>
 
                 <Flex alignItems={'center'}>
                   <Menu>
@@ -162,7 +178,12 @@ const HeaderNav: React.VFC = () => {
                         {session.user?.name || 'Unknown'}&apos;s Profile
                       </MenuItem>
                       <MenuDivider />
-                      <MenuItem onClick={() => signOut({ callbackUrl: '/' })}>
+                      <MenuItem
+                        onClick={() =>
+                          signOut({
+                            callbackUrl: `${process.env.NEXT_PUBLIC_MY_URL}/`,
+                          })
+                        }>
                         Log Out
                       </MenuItem>
                     </MenuList>
@@ -174,7 +195,11 @@ const HeaderNav: React.VFC = () => {
             <HStack spacing={3} display="flex" alignItems="center">
               <Button
                 colorScheme="secondary"
-                onClick={() => signIn('google', { callbackUrl: '/workouts' })}>
+                onClick={() =>
+                  signIn('google', {
+                    callbackUrl: `${process.env.NEXT_PUBLIC_MY_URL}/workouts`,
+                  })
+                }>
                 Login
               </Button>
             </HStack>
