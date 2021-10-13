@@ -3,18 +3,20 @@ import { IconButton, HStack, Icon, Colors } from '@chakra-ui/react';
 import { TRatingsIcon, getRatingsIcon } from 'lib/utils/ratings';
 
 type Props = {
-  initValue: number;
   numOptions: number;
   iconType: TRatingsIcon;
+  value?: number;
+  onChange?: (newVal: number) => void;
 };
 
 export const IconRating: React.FC<Props> = ({
-  initValue,
+  value,
   numOptions,
   iconType,
+  onChange,
 }) => {
-  const [rating, setRating] = React.useState(initValue);
-  const [hover, setHover] = React.useState(initValue);
+  const [rating, setRating] = React.useState(value ?? 0);
+  const [hover, setHover] = React.useState(value ?? 0);
   const MyIcon = getRatingsIcon(iconType);
 
   return (
@@ -36,7 +38,10 @@ export const IconRating: React.FC<Props> = ({
             color={color}
             size="md"
             variant="ghost"
-            onClick={() => setRating(idx + 1)}
+            onClick={() => {
+              setRating(idx + 1);
+              onChange && onChange(idx + 1);
+            }}
             onMouseEnter={() => setHover(idx + 1)}
             onMouseLeave={() => setHover(-1)}
           />
