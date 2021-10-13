@@ -16,55 +16,14 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react';
 import { useForm, Controller } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IconRating } from './IconRating';
-
-const newWorkoutSchema = z.object({
-  description: z
-    .string()
-    .nonempty()
-    .min(10, { message: 'Must be at least 10 characters' }),
-  distance: z.number({ invalid_type_error: 'A number is required' }).gt(0.1),
-  duration: z.number().gt(5).optional(),
-  elevation: z.number().optional(),
-  startTime: z.date().optional(),
-
-  modality: z.nativeEnum(WorkoutModality, {
-    errorMap: (issue, _ctx) => {
-      // Return generic error message for any enum errors
-      return {
-        message: 'Invalid value',
-      };
-    },
-  }),
-  workoutType: z.nativeEnum(WorkoutType, {
-    errorMap: (issue, _ctx) => {
-      // Return generic error message for any enum errors
-      return {
-        message: 'Invalid value',
-      };
-    },
-  }),
-
-  ratingEnergy: z
-    .number({ required_error: 'A rating is required' })
-    .int()
-    .gte(1, { message: 'A rating is required' })
-    .lte(5),
-  ratingDifficulty: z
-    .number({ required_error: 'A rating is required' })
-    .int()
-    .gte(1, { message: 'A rating is required' })
-    .lte(5),
-  ratingGeneral: z
-    .number({ required_error: 'A rating is required' })
-    .int()
-    .gte(1, { message: 'A rating is required' })
-    .lte(5),
-});
-
-type TWorkoutSchema = z.infer<typeof newWorkoutSchema>;
+import { fetchAddWorkout } from 'lib/queries/fetchAddWorkout';
+import { useMutation } from 'react-query';
+import {
+  newWorkoutSchema,
+  TNewWorkoutSchema,
+} from 'lib/validators/addWorkoutSchema';
 
 export const AddWorkoutForm: React.FC = () => {
   const {
@@ -72,17 +31,19 @@ export const AddWorkoutForm: React.FC = () => {
     register,
     control,
     formState: { errors, isSubmitting },
-  } = useForm<TWorkoutSchema>({
+  } = useForm<TNewWorkoutSchema>({
     // Type arg to useForm, so all RHF methods will be fully typed!
     resolver: zodResolver(newWorkoutSchema),
   });
 
-  function onSubmit(values: TWorkoutSchema): Promise<void> {
+  const mutation = useMutation(fetchAddWorkout);
+
+  function onSubmit(values: TNewWorkoutSchema): Promise<void> {
     return new Promise((resolve) => {
       setTimeout(() => {
-        alert(JSON.stringify(values, null, 2));
+        mutation.mutate(values);
         resolve();
-      }, 3000);
+      }, 1000);
     });
   }
 
