@@ -158,27 +158,18 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
           Columns
         </MenuButton>
         <MenuList minWidth="240px">
-          <MenuOptionGroup
-            title="Show/Hide"
-            type="checkbox"
-            defaultValue={allColumns.reduce(
-              (filtered: string[], column) =>
-                column.isVisible ? [...filtered, column.id] : filtered,
-              []
-            )}>
-            {allColumns.map((column) => {
-              console.log(column.id, column.isVisible);
-              return (
-                <MenuItemOption
-                  key={column.id}
-                  value={column.id}
-                  isChecked={column.isVisible}
-                  onClick={() => column.toggleHidden()}>
-                  {column.id}
-                </MenuItemOption>
-              );
-            })}
-          </MenuOptionGroup>
+          {allColumns.map((column) => {
+            console.log(column.id, column.isVisible);
+            return (
+              <MenuItemOption
+                key={column.id}
+                value={column.id}
+                isChecked={column.isVisible}
+                onClick={() => column.toggleHidden()}>
+                {column.id}
+              </MenuItemOption>
+            );
+          })}
         </MenuList>
       </Menu>
 
