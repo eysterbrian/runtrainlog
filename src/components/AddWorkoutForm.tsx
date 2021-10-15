@@ -9,6 +9,7 @@ import {
   Select,
   SimpleGrid,
   GridItem,
+  useToast,
 } from '@chakra-ui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { fetchAddWorkout } from 'lib/queries/fetchAddWorkout';
@@ -54,6 +55,7 @@ export const AddWorkoutForm: React.FC<Props> = ({
       queryClient.invalidateQueries(['workouts', session?.user?.id]);
     },
   });
+  const toast = useToast();
 
   useEffect(() => {
     if (!updateSubmitState) {
@@ -71,6 +73,13 @@ export const AddWorkoutForm: React.FC<Props> = ({
 
   function onSubmit(values: TNewWorkoutSchema) {
     mutation.mutate(values);
+    toast({
+      title: 'Workout Added.',
+      description: 'Congrats on another good workout.',
+      status: 'success',
+      duration: 9000,
+      isClosable: true,
+    });
   }
 
   return (
