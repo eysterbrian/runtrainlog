@@ -4,8 +4,17 @@ import { ComponentWithAuth } from 'types/auth';
 import Head from 'next/head';
 import { VStack, Button, Container, Heading } from '@chakra-ui/react';
 import { AddWorkoutForm, SubmittingState } from 'components/AddWorkoutForm';
+import { useRouter } from 'next/router';
 
 const AddWorkoutPage: ComponentWithAuth = () => {
+  const [submittingState, setSubmittingState] =
+    React.useState<SubmittingState>('idle');
+  const router = useRouter();
+
+  if (submittingState === 'isSubmitted') {
+    router.push('/workouts');
+  }
+
   return (
     <>
       <Head>
@@ -16,7 +25,7 @@ const AddWorkoutPage: ComponentWithAuth = () => {
         <Heading fontSize="xl" my="4" mx="8">
           Add a new workout
         </Heading>
-        <AddWorkoutForm />
+        <AddWorkoutForm updateSubmitState={setSubmittingState} />
       </Container>
     </>
   );
