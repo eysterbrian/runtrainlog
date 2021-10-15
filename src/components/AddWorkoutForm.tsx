@@ -1,29 +1,23 @@
 import { WorkoutModality, WorkoutType } from '.prisma/client';
 import {
-  Box,
-  Container,
+  Button,
+  Center,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Input,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
-  Button,
   Select,
-  Center,
-  FormErrorMessage,
 } from '@chakra-ui/react';
-import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { IconRating } from './IconRating';
 import { fetchAddWorkout } from 'lib/queries/fetchAddWorkout';
-import { useMutation } from 'react-query';
 import {
   newWorkoutSchema,
   TNewWorkoutSchema,
 } from 'lib/validators/addWorkoutSchema';
+import { useSession } from 'next-auth/client';
+import { Controller, useForm } from 'react-hook-form';
+import { useMutation, useQueryClient } from 'react-query';
+import { IconRating } from './IconRating';
 
 export const AddWorkoutForm: React.FC = () => {
   const {
@@ -35,15 +29,21 @@ export const AddWorkoutForm: React.FC = () => {
     // Type arg to useForm, so all RHF methods will be fully typed!
     resolver: zodResolver(newWorkoutSchema),
   });
-
-  const mutation = useMutation(fetchAddWorkout);
+  const [session] = useSession();
+  const queryClient = useQueryClient();
+  const mutation = useMutation(fetchAddWorkout, {
+    onSuccess: () => {
+      console.log('Invalidate queries from addWorkout mutation');
+      queryClient.invalidateQueries(['workouts', session?.user?.id]);
+    },
+  });
 
   function onSubmit(values: TNewWorkoutSchema): Promise<void> {
     return new Promise((resolve) => {
       setTimeout(() => {
         mutation.mutate(values);
         resolve();
-      }, 1000);
+      }, 1);
     });
   }
 
