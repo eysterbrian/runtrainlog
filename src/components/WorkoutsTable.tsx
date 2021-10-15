@@ -15,7 +15,7 @@ import { TriangleDownIcon, TriangleUpIcon, StarIcon } from '@chakra-ui/icons';
 import { useTable, useSortBy, Column } from 'react-table';
 import { Workout } from '@prisma/client';
 import { parseISO, format, addSeconds } from 'date-fns';
-import { TRatingsIcon, getRatingsIcon } from 'lib/utils/ratings';
+import { TRatingsIcon, getRatingsIcon } from 'lib/utils/ratingsIcon';
 
 type Props = {
   workouts: Workout[];
@@ -134,6 +134,8 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
             <Tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map((column) => (
                 <Th
+                  // resize="horizontal"
+                  // overflow="hidden"
                   {...column.getHeaderProps(column.getSortByToggleProps())}
                   isNumeric={column.isNumeric}>
                   {column.render('Header')}

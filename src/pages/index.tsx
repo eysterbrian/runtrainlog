@@ -1,3 +1,4 @@
+import { NextPage } from 'next';
 import {
   Container,
   SimpleGrid,

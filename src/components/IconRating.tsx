@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconButton, HStack, Icon, Colors } from '@chakra-ui/react';
-import { TRatingsIcon, getRatingsIcon } from 'lib/utils/ratings';
+import { TRatingsIcon, getRatingsIcon } from 'lib/utils/ratingsIcon';
 
 type Props = {
   numOptions: number;

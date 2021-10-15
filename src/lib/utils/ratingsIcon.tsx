@@ -8,6 +8,11 @@ import { IconType } from 'react-icons';
  */
 export type TRatingsIcon = 'Star' | 'Energy' | 'Difficulty';
 
+/**
+ * Returns the Chakra Icon for the given iconType
+ * @param iconType
+ * @returns a Chakra Icon component
+ */
 export function getRatingsIcon(iconType: TRatingsIcon): IconType {
   let MyIcon: IconType;
   switch (iconType) {
