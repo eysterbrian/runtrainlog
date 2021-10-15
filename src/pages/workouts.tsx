@@ -8,7 +8,8 @@ import { ComponentWithAuth } from 'types/auth';
 import { TestTable } from 'components/TestTable';
 import { WorkoutsTable } from 'components/WorkoutsTable';
 import { Loading } from 'components/Loading';
-import { Box } from '@chakra-ui/react';
+import { Box, HStack, Button, useDisclosure } from '@chakra-ui/react';
+import { AddWorkoutModal } from 'components/AddWorkoutModal';
 
 const WorkoutsPage: ComponentWithAuth = () => {
   const [session] = useSession();
@@ -16,6 +17,8 @@ const WorkoutsPage: ComponentWithAuth = () => {
     ['workouts', session?.user?.id],
     fetchWorkouts
   );
+
+  const addWorkoutModalDisclosure = useDisclosure();
 
   return (
     <>
@@ -27,7 +30,15 @@ const WorkoutsPage: ComponentWithAuth = () => {
         <Loading />
       ) : (
         <Box py={6} px={4}>
+          <HStack>
+            <Button onClick={addWorkoutModalDisclosure.onOpen}>
+              Add New Workout
+            </Button>
+            <Button>Show/Hide Columns</Button>
+            <Button>Filter</Button>
+          </HStack>
           <WorkoutsTable workouts={workoutsQuery.data.workouts} />
+          <AddWorkoutModal modalDisclosure={addWorkoutModalDisclosure} />
         </Box>
       )}
     </>

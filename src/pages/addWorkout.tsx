@@ -2,8 +2,8 @@ import React from 'react';
 import { useSession } from 'next-auth/client';
 import { ComponentWithAuth } from 'types/auth';
 import Head from 'next/head';
-import { Box } from '@chakra-ui/react';
-import { AddWorkoutForm } from 'components/AddWorkoutForm';
+import { VStack, Button, Container, Heading } from '@chakra-ui/react';
+import { AddWorkoutForm, SubmittingState } from 'components/AddWorkoutForm';
 
 const AddWorkoutPage: ComponentWithAuth = () => {
   return (
@@ -12,9 +12,12 @@ const AddWorkoutPage: ComponentWithAuth = () => {
         <title>Add new workout</title>
       </Head>
 
-      <Box py={6} px={4}>
+      <Container>
+        <Heading fontSize="xl" my="4" mx="8">
+          Add a new workout
+        </Heading>
         <AddWorkoutForm />
-      </Box>
+      </Container>
     </>
   );
 };

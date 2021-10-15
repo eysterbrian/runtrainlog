@@ -32,6 +32,7 @@ import { BsPlus } from 'react-icons/bs';
 import React from 'react';
 import { signIn, signOut, useSession } from 'next-auth/client';
 import NextLink from 'next/link';
+import { AddWorkoutModal } from './AddWorkoutModal';
 
 const MobileNav: React.VFC<{ showMobileNav: UseDisclosureReturn }> = ({
   showMobileNav,
@@ -94,6 +95,8 @@ const MobileNav: React.VFC<{ showMobileNav: UseDisclosureReturn }> = ({
 const HeaderNav: React.VFC = () => {
   const bg = useColorModeValue('white', 'gray.800');
   const showMobileNav = useDisclosure();
+  const addWorkoutModalDisclosure = useDisclosure();
+
   const [session, sessionStatus] = useSession();
 
   const profileTooltip = session && (
@@ -151,11 +154,12 @@ const HeaderNav: React.VFC = () => {
           {session ? (
             !showMobileNav.isOpen && (
               <HStack spacing={3} display="flex" alignItems="center">
-                <NextLink href="/addWorkout" passHref>
-                  <Button as="a" colorScheme="secondary" leftIcon={<BsPlus />}>
-                    New Run
-                  </Button>
-                </NextLink>
+                <Button
+                  colorScheme="secondary"
+                  leftIcon={<BsPlus />}
+                  onClick={addWorkoutModalDisclosure.onOpen}>
+                  New Run
+                </Button>
 
                 <Flex alignItems={'center'}>
                   <Menu>
@@ -206,6 +210,7 @@ const HeaderNav: React.VFC = () => {
           )}
         </Flex>
       </chakra.header>
+      <AddWorkoutModal modalDisclosure={addWorkoutModalDisclosure} />
     </React.Fragment>
   );
 };
