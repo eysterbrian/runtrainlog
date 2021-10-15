@@ -10,8 +10,21 @@ import {
   Badge,
   chakra,
   VisuallyHidden,
+  Menu,
+  MenuButton,
+  MenuOptionGroup,
+  MenuGroup,
+  Button,
+  MenuDivider,
+  MenuList,
+  MenuItemOption,
 } from '@chakra-ui/react';
-import { TriangleDownIcon, TriangleUpIcon, StarIcon } from '@chakra-ui/icons';
+import {
+  TriangleDownIcon,
+  TriangleUpIcon,
+  StarIcon,
+  ChevronDownIcon,
+} from '@chakra-ui/icons';
 import { useTable, useSortBy, Column } from 'react-table';
 import { Workout } from '@prisma/client';
 import { parseISO, format, addSeconds } from 'date-fns';
@@ -134,17 +147,41 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   /* eslint-disable react/jsx-key */
   return (
     <>
-      {/* Show checkboxes to show/hide each individual column */}
-      <HStack>
-        {allColumns.map((column) => (
-          <div key={column.id}>
-            <label>
-              <input type="checkbox" {...column.getToggleHiddenProps()} />{' '}
-              {column.id}
-            </label>
-          </div>
-        ))}
-      </HStack>
+      <Menu closeOnSelect={false}>
+        <MenuButton
+          rightIcon={<ChevronDownIcon />}
+          size="xs"
+          as={Button}
+          colorScheme="brand"
+          rounded="sm"
+          py={1}>
+          Columns
+        </MenuButton>
+        <MenuList minWidth="240px">
+          <MenuOptionGroup
+            title="Show/Hide"
+            type="checkbox"
+            defaultValue={allColumns.reduce(
+              (filtered: string[], column) =>
+                column.isVisible ? [...filtered, column.id] : filtered,
+              []
+            )}>
+            {allColumns.map((column) => {
+              console.log(column.id, column.isVisible);
+              return (
+                <MenuItemOption
+                  key={column.id}
+                  value={column.id}
+                  isChecked={column.isVisible}
+                  onClick={() => column.toggleHidden()}>
+                  {column.id}
+                </MenuItemOption>
+              );
+            })}
+          </MenuOptionGroup>
+        </MenuList>
+      </Menu>
+
       <Table {...getTableProps()}>
         <Thead>
           {headerGroups.map((headerGroup) => (
