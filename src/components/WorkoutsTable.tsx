@@ -121,13 +121,30 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   );
   const data = React.useMemo<Workout[]>(() => workouts, [workouts]);
 
-  const { getTableBodyProps, getTableProps, headerGroups, rows, prepareRow } =
-    useTable({ columns, data: workouts }, useSortBy);
+  const {
+    getTableBodyProps,
+    getTableProps,
+    headerGroups,
+    rows,
+    prepareRow,
+    allColumns,
+  } = useTable({ columns, data: workouts }, useSortBy);
 
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
   return (
     <>
+      {/* Show checkboxes to show/hide each individual column */}
+      <HStack>
+        {allColumns.map((column) => (
+          <div key={column.id}>
+            <label>
+              <input type="checkbox" {...column.getToggleHiddenProps()} />{' '}
+              {column.id}
+            </label>
+          </div>
+        ))}
+      </HStack>
       <Table {...getTableProps()}>
         <Thead>
           {headerGroups.map((headerGroup) => (
