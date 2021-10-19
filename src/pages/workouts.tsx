@@ -30,13 +30,11 @@ const WorkoutsPage: ComponentWithAuth = () => {
         <Loading />
       ) : (
         <Box py={6} px={4}>
-          <HStack>
+          {/* <HStack>
             <Button onClick={addWorkoutModalDisclosure.onOpen}>
               Add New Workout
             </Button>
-            <Button>Show/Hide Columns</Button>
-            <Button>Filter</Button>
-          </HStack>
+          </HStack> */}
           <WorkoutsTable workouts={workoutsQuery.data.workouts} />
           <AddWorkoutModal modalDisclosure={addWorkoutModalDisclosure} />
         </Box>

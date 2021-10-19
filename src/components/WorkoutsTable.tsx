@@ -25,7 +25,7 @@ import {
   StarIcon,
   ChevronDownIcon,
 } from '@chakra-ui/icons';
-import { useTable, useSortBy, Column } from 'react-table';
+import { useTable, useSortBy, useFilters, Column } from 'react-table';
 import { Workout } from '@prisma/client';
 import { parseISO, format, addSeconds } from 'date-fns';
 import { TRatingsIcon, getRatingsIcon } from 'lib/utils/ratingsIcon';
@@ -139,39 +139,77 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     getTableProps,
     headerGroups,
     rows,
+    setAllFilters,
     prepareRow,
     allColumns,
-  } = useTable({ columns, data: workouts }, useSortBy);
+  } = useTable({ columns, data: workouts }, useFilters, useSortBy);
 
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
   return (
     <>
-      <Menu closeOnSelect={false}>
-        <MenuButton
-          rightIcon={<ChevronDownIcon />}
-          size="xs"
-          as={Button}
-          colorScheme="brand"
-          rounded="sm"
-          py={1}>
-          Columns
-        </MenuButton>
-        <MenuList minWidth="240px">
-          {allColumns.map((column) => {
-            console.log(column.id, column.isVisible);
-            return (
-              <MenuItemOption
-                key={column.id}
-                value={column.id}
-                isChecked={column.isVisible}
-                onClick={() => column.toggleHidden()}>
-                {column.id}
+      <HStack spacing={4}>
+        <Menu closeOnSelect={false}>
+          <MenuButton
+            rightIcon={<ChevronDownIcon />}
+            size="xs"
+            as={Button}
+            colorScheme="brand"
+            rounded="sm"
+            py={1}>
+            Columns
+          </MenuButton>
+          <MenuList minWidth="240px">
+            {allColumns.map((column) => {
+              return (
+                <MenuItemOption
+                  key={column.id}
+                  value={column.id}
+                  isChecked={column.isVisible}
+                  onClick={() => column.toggleHidden()}>
+                  {column.id}
+                </MenuItemOption>
+              );
+            })}
+          </MenuList>
+        </Menu>
+
+        <Menu closeOnSelect={false}>
+          <MenuButton
+            rightIcon={<ChevronDownIcon />}
+            size="xs"
+            as={Button}
+            colorScheme="secondary"
+            rounded="sm"
+            py={1}>
+            Filters
+          </MenuButton>
+          <MenuList minWidth="240px">
+            <MenuOptionGroup defaultValue="all" type="radio">
+              <MenuItemOption value="all" onClick={() => setAllFilters([])}>
+                All Workouts
               </MenuItemOption>
-            );
-          })}
-        </MenuList>
-      </Menu>
+              <MenuItemOption
+                value="onlyRuns"
+                onClick={() =>
+                  setAllFilters([{ id: 'modality', value: 'RUN' }])
+                }>
+                All Runs
+              </MenuItemOption>
+              <MenuItemOption
+                value="onlyLongRuns"
+                onClick={() =>
+                  setAllFilters([
+                    { id: 'modality', value: 'RUN' },
+                    { id: 'workoutType', value: 'LONG' },
+                  ])
+                }>
+                Long Runs
+              </MenuItemOption>
+            </MenuOptionGroup>
+          </MenuList>
+        </Menu>
+      </HStack>
 
       <Table {...getTableProps()}>
         <Thead>
