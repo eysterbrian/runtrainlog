@@ -13,22 +13,26 @@ import {
   Menu,
   MenuButton,
   MenuOptionGroup,
-  MenuGroup,
   Button,
-  MenuDivider,
+  IconButton,
   MenuList,
   MenuItemOption,
+  useToast,
 } from '@chakra-ui/react';
 import {
   TriangleDownIcon,
   TriangleUpIcon,
-  StarIcon,
+  DeleteIcon,
   ChevronDownIcon,
 } from '@chakra-ui/icons';
-import { useTable, useSortBy, useFilters, Column } from 'react-table';
+import { useTable, useSortBy, useFilters, Column, Row } from 'react-table';
 import { Workout } from '@prisma/client';
+import { useSession } from 'next-auth/client';
+import { useMutation, useQueryClient } from 'react-query';
 import { parseISO, format, addSeconds } from 'date-fns';
 import { TRatingsIcon, getRatingsIcon } from 'lib/utils/ratingsIcon';
+import { fetchDeleteWorkout } from 'lib/queries/fetchDeleteWorkout';
+import { Loading } from 'components/Loading';
 
 type Props = {
   workouts: Workout[];
@@ -56,7 +60,15 @@ function getRatingsIconComponent(
   return StarRating;
 }
 
+/**
+ * Displays table view of the given workouts
+ * @param workouts Array of workouts
+ * @returns
+ */
 export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
+  /**
+   * Define the columns for the table
+   */
   const columns: Array<Column<Workout>> = React.useMemo(
     () => [
       {
@@ -134,6 +146,16 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   );
   const data = React.useMemo<Workout[]>(() => workouts, [workouts]);
 
+  const [session] = useSession();
+  const queryClient = useQueryClient();
+  const deleteWorkoutMutation = useMutation(fetchDeleteWorkout, {
+    onSuccess: () => {
+      console.log('Invalidate queries from addWorkout mutation');
+      queryClient.invalidateQueries(['workouts', session?.user?.id]);
+    },
+  });
+  const toast = useToast();
+
   const {
     getTableBodyProps,
     getTableProps,
@@ -142,7 +164,61 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     setAllFilters,
     prepareRow,
     allColumns,
-  } = useTable({ columns, data: workouts }, useFilters, useSortBy);
+  } = useTable({ columns, data: workouts }, useFilters, useSortBy, (hooks) => {
+    hooks.visibleColumns.push((columns) => [
+      {
+        id: 'modifyRow',
+        accessor: 'id',
+        Cell: ({ row }) => {
+          return (
+            <IconButton
+              aria-label="Delete row"
+              icon={<DeleteIcon />}
+              variant="ghost"
+              disabled={deleteWorkoutMutation.isLoading}
+              onClick={() => {
+                const deletedWorkout = deleteWorkoutMutation.mutate(
+                  row.original.id,
+                  {
+                    onError: (error) => {
+                      console.log(error);
+                      toast({
+                        title: 'Error Adding Workout',
+                        status: 'error',
+                      });
+                    },
+                    onSuccess: (deletedWorkout) => {
+                      console.log(deletedWorkout);
+
+                      const date: Date = parseISO(
+                        deletedWorkout?.startTime as unknown as string
+                      );
+                      const dateStr = !date
+                        ? 'Unknown Date'
+                        : format(date, 'EEEE, M/d/y');
+
+                      toast({
+                        title: 'Workout Deleted.',
+                        description: `The workout from ${dateStr} is deleted.`,
+                        status: 'success',
+                        duration: 9000,
+                        isClosable: true,
+                      });
+                    },
+                  }
+                );
+              }}
+            />
+          );
+        },
+      },
+      ...columns,
+    ]);
+  });
+
+  if (deleteWorkoutMutation.isLoading) {
+    return <Loading />;
+  }
 
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
