@@ -72,13 +72,23 @@ export const AddWorkoutForm: React.FC<Props> = ({
   }, [isSubmitting, isSubmitted, updateSubmitState]);
 
   function onSubmit(values: TNewWorkoutSchema) {
-    mutation.mutate(values);
-    toast({
-      title: 'Workout Added.',
-      description: 'Congrats on another good workout.',
-      status: 'success',
-      duration: 9000,
-      isClosable: true,
+    mutation.mutate(values, {
+      onError: (error) => {
+        console.log(error);
+        toast({
+          title: 'Error Adding Workout',
+          status: 'error',
+        });
+      },
+      onSuccess: () => {
+        toast({
+          title: 'Workout Added.',
+          description: 'Congrats on another good workout.',
+          status: 'success',
+          duration: 9000,
+          isClosable: true,
+        });
+      },
     });
   }
 
