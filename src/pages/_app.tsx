@@ -15,7 +15,6 @@ function MyApp({
   Component,
   pageProps,
 }: Omit<AppProps, 'Component'> & { Component: NextComponentMaybeAuth }) {
-  console.log(`MyApp child page: ${Component.authRequired}`);
   return (
     <>
       <QueryClientProvider client={queryClient}>

@@ -11,11 +11,7 @@ import {
   Icon,
   useColorModeValue,
 } from '@chakra-ui/react';
-import {
-  IoAnalyticsSharp,
-  IoLogoBitcoin,
-  IoSearchSharp,
-} from 'react-icons/io5';
+import { IoAnalyticsSharp } from 'react-icons/io5';
 import { ReactElement } from 'react';
 import { BsSmartwatch } from 'react-icons/bs';
 import { FaLaptopMedical } from 'react-icons/fa';
