@@ -37,7 +37,7 @@ import { useTable, useSortBy, useFilters, Column, Row } from 'react-table';
 import { Workout } from '@prisma/client';
 import { useSession } from 'next-auth/client';
 import { useMutation, useQueryClient } from 'react-query';
-import { parseISO, format, addSeconds } from 'date-fns';
+import { parseISO, format, addSeconds, isValid } from 'date-fns';
 import { TRatingsIcon, getRatingsIcon } from 'lib/utils/ratingsIcon';
 import { fetchDeleteWorkout } from 'lib/queries/fetchDeleteWorkout';
 import { Loading, LoadingModal } from 'components/Loading';
@@ -166,7 +166,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
 
   const showConfirmDelete = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement | null>(null);
-  const [deleteRow, setDeleteRow] = React.useState<string>('');
+  const [deleteRow, setDeleteRow] = React.useState<Workout>();
 
   const DeleteIconButton: React.FC<{ row: Row<Workout> }> = React.useCallback(
     ({ row }) => (
@@ -177,7 +177,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         // BUG: button never gets disabled
         disabled={deleteWorkoutMutation.isLoading}
         onClick={() => {
-          setDeleteRow(row.original.id);
+          setDeleteRow(row.original);
           showConfirmDelete.onOpen();
         }}
       />
@@ -203,6 +203,16 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       ...columns,
     ]);
   });
+
+  // Calculate date of the row to be deleted for use in confirmation dialog
+  let deleteRowDate: Date | undefined = undefined;
+  if (deleteRow) {
+    deleteRowDate = parseISO(deleteRow?.startTime as unknown as string);
+  }
+  const deleteWorkoutDateStr =
+    !deleteRowDate || !isValid(deleteRowDate)
+      ? 'Unknown Date'
+      : format(deleteRowDate, 'EEEE, M/d/y');
 
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
@@ -322,11 +332,13 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Customer
+              Delete Workout
             </AlertDialogHeader>
 
             <AlertDialogBody>
-              Are you sure? You cannot undo this action afterwards.
+              Are you sure you want to delete the{' '}
+              <strong>{deleteWorkoutDateStr}</strong> workout? You cannot undo
+              this action.
             </AlertDialogBody>
 
             <AlertDialogFooter>
@@ -337,12 +349,12 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
                 colorScheme="red"
                 onClick={() => {
                   const deletedWorkout = deleteWorkoutMutation.mutate(
-                    deleteRow,
+                    deleteRow?.id ?? '',
                     {
                       onError: (error) => {
                         console.log(error);
                         toast({
-                          title: 'Error Adding Workout',
+                          title: 'Error Deleting Workout',
                           status: 'error',
                         });
                       },
@@ -366,7 +378,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
                       },
                       onSettled: () => {
                         console.log('onSettled');
-                        setDeleteRow('');
+                        setDeleteRow(undefined);
                         showConfirmDelete.onClose();
                       },
                     }
