@@ -168,8 +168,6 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   const cancelRef = React.useRef<HTMLButtonElement | null>(null);
   const [deleteRow, setDeleteRow] = React.useState<string>('');
 
-  const showLoadingModal = useDisclosure();
-
   const DeleteIconButton: React.FC<{ row: Row<Workout> }> = React.useCallback(
     ({ row }) => (
       <IconButton
@@ -206,18 +204,11 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     ]);
   });
 
-  // Only toggle the disclosure when the loading state has changed
-  if (deleteWorkoutMutation.isLoading && !showLoadingModal.isOpen) {
-    showLoadingModal.onOpen();
-  } else if (!deleteWorkoutMutation.isLoading && showLoadingModal.isOpen) {
-    showLoadingModal.onClose();
-  }
-
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
   return (
     <>
-      <LoadingModal showLoadingModal={showLoadingModal} />
+      <LoadingModal showLoadingModal={deleteWorkoutMutation.isLoading} />
       <HStack spacing={4}>
         <Menu closeOnSelect={false}>
           <MenuButton

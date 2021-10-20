@@ -25,27 +25,24 @@ export const Loading: React.FC = () => {
  * @param showLoadingModal
  * @returns
  */
-export const LoadingModal: React.FC<{ showLoadingModal: UseDisclosureReturn }> =
-  ({ showLoadingModal }) => {
-    return (
-      <Modal
-        isCentered
-        size="xl"
-        isOpen={showLoadingModal.isOpen}
-        onClose={() => true}>
-        <ModalOverlay />
-        <ModalContent bg="transparent">
-          <ModalBody>
-            <Center>
-              <Spinner
-                size="xl"
-                color="brand.500"
-                label="Loading..."
-                thickness="8px"
-              />
-            </Center>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-    );
-  };
+export const LoadingModal: React.FC<{ showLoadingModal: boolean }> = ({
+  showLoadingModal,
+}) => {
+  return (
+    <Modal isCentered size="xl" isOpen={showLoadingModal} onClose={() => true}>
+      <ModalOverlay />
+      <ModalContent bg="transparent">
+        <ModalBody>
+          <Center>
+            <Spinner
+              size="xl"
+              color="brand.500"
+              label="Loading..."
+              thickness="8px"
+            />
+          </Center>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
+  );
+};
