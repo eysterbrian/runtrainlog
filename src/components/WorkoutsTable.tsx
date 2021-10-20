@@ -17,6 +17,13 @@ import {
   IconButton,
   MenuList,
   MenuItemOption,
+  useDisclosure,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
   useToast,
 } from '@chakra-ui/react';
 import {
@@ -25,6 +32,7 @@ import {
   DeleteIcon,
   ChevronDownIcon,
 } from '@chakra-ui/icons';
+import { FocusableElement } from '@chakra-ui/utils';
 import { useTable, useSortBy, useFilters, Column, Row } from 'react-table';
 import { Workout } from '@prisma/client';
 import { useSession } from 'next-auth/client';
@@ -156,6 +164,27 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   });
   const toast = useToast();
 
+  const showConfirmDelete = useDisclosure();
+  const cancelRef = React.useRef<HTMLButtonElement | null>(null);
+  const [deleteRow, setDeleteRow] = React.useState<string>('');
+
+  const DeleteIconButton: React.FC<{ row: Row<Workout> }> = React.useCallback(
+    ({ row }) => (
+      <IconButton
+        aria-label="Delete row"
+        icon={<DeleteIcon />}
+        variant={deleteWorkoutMutation.isLoading ? 'ghost' : 'solid'}
+        // BUG: button never gets disabled
+        disabled={deleteWorkoutMutation.isLoading}
+        onClick={() => {
+          setDeleteRow(row.original.id);
+          showConfirmDelete.onOpen();
+        }}
+      />
+    ),
+    [deleteWorkoutMutation, showConfirmDelete]
+  );
+
   const {
     getTableBodyProps,
     getTableProps,
@@ -169,48 +198,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       {
         id: 'modifyRow',
         accessor: 'id',
-        Cell: ({ row }) => {
-          return (
-            <IconButton
-              aria-label="Delete row"
-              icon={<DeleteIcon />}
-              variant="ghost"
-              disabled={deleteWorkoutMutation.isLoading}
-              onClick={() => {
-                const deletedWorkout = deleteWorkoutMutation.mutate(
-                  row.original.id,
-                  {
-                    onError: (error) => {
-                      console.log(error);
-                      toast({
-                        title: 'Error Adding Workout',
-                        status: 'error',
-                      });
-                    },
-                    onSuccess: (deletedWorkout) => {
-                      console.log(deletedWorkout);
-
-                      const date: Date = parseISO(
-                        deletedWorkout?.startTime as unknown as string
-                      );
-                      const dateStr = !date
-                        ? 'Unknown Date'
-                        : format(date, 'EEEE, M/d/y');
-
-                      toast({
-                        title: 'Workout Deleted.',
-                        description: `The workout from ${dateStr} is deleted.`,
-                        status: 'success',
-                        duration: 9000,
-                        isClosable: true,
-                      });
-                    },
-                  }
-                );
-              }}
-            />
-          );
-        },
+        Cell: ({ row }) => <DeleteIconButton row={row} />,
       },
       ...columns,
     ]);
@@ -329,6 +317,71 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
           })}
         </Tbody>
       </Table>
+
+      <AlertDialog
+        isOpen={showConfirmDelete.isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={showConfirmDelete.onClose}>
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Customer
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure? You cannot undo this action afterwards.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={showConfirmDelete.onClose}>
+                Cancel
+              </Button>
+              <Button
+                colorScheme="red"
+                onClick={() => {
+                  const deletedWorkout = deleteWorkoutMutation.mutate(
+                    deleteRow,
+                    {
+                      onError: (error) => {
+                        console.log(error);
+                        toast({
+                          title: 'Error Adding Workout',
+                          status: 'error',
+                        });
+                      },
+                      onSuccess: (deletedWorkout) => {
+                        console.log('onSuccess', deletedWorkout);
+
+                        const date: Date = parseISO(
+                          deletedWorkout?.startTime as unknown as string
+                        );
+                        const dateStr = !date
+                          ? 'Unknown Date'
+                          : format(date, 'EEEE, M/d/y');
+
+                        toast({
+                          title: 'Workout Deleted.',
+                          description: `The workout from ${dateStr} is deleted.`,
+                          status: 'success',
+                          duration: 9000,
+                          isClosable: true,
+                        });
+                      },
+                      onSettled: () => {
+                        console.log('onSettled');
+                        setDeleteRow('');
+                        showConfirmDelete.onClose();
+                      },
+                    }
+                  );
+                }}
+                ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </>
   );
 };

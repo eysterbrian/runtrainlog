@@ -1,5 +1,3 @@
-import { deleteWorkoutSchema } from 'lib/validators/deleteWorkoutSchema';
-
 export async function fetchDeleteWorkout(workoutId: string) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_MY_API_URL}/users/me/workouts/${workoutId}`,
