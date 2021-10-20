@@ -5,15 +5,6 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { Workout } from '@prisma/client';
 import { newWorkoutSchema } from 'lib/validators/addWorkoutSchema';
 
-// Shape of the response data
-type Data =
-  | {
-      id: string;
-      workouts: Workout[];
-    }
-  | string
-  | null;
-
 const handler: NextApiHandler = async (req, res) => {
   const session = await getSession({ req });
   if (!session) {
@@ -26,6 +17,11 @@ const handler: NextApiHandler = async (req, res) => {
     return res.status(400).send('Invalid userId');
   }
 
+  //
+
+  /**
+   * Return array of all workouts for this user
+   */
   if (req.method === 'GET') {
     // TODO: Auth check. Can current user access this userId's workouts?
     const workouts = await prisma.user.findFirst({
@@ -38,7 +34,11 @@ const handler: NextApiHandler = async (req, res) => {
       },
     });
     return res.status(200).json(workouts);
-  } else if (req.method === 'POST') {
+  } 
+  /**
+   * Create a new workout for this user
+   */
+  else if (req.method === 'POST') {
     console.log('🏃  workout POST handler', req.body);
 
     try {
