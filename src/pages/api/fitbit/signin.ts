@@ -22,6 +22,7 @@ export const fitbitAuthClient = new AuthorizationCode({
     tokenPath: '/oauth2/token',
     authorizeHost: 'https://www.fitbit.com',
     authorizePath: '/oauth2/authorize',
+    revokePath: '/oauth2/revoke',
   },
 });
 

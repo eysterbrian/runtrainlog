@@ -26,22 +26,33 @@ const fitbitSignoutHandler: NextApiHandler = async (req, res) => {
 
   const jsonToken = user?.fitbitAccount?.token;
   if (!jsonToken) {
-    return res.status(400).send('No Fitbit account for this user');
+    console.log('🐞 No fitbit account for this user');
+    return res.status(400).json({ message: 'No Fitbit account for this user' });
   }
 
-  const prevAccessToken = fitbitAuthClient.createToken(JSON.parse(jsonToken));
-  prevAccessToken.revokeAll();
-  const deletedToken = await prisma.user.update({
-    where: {
-      id: userId,
-    },
-    data: {
-      fitbitAccount: {
-        delete: true,
-      },
-    },
-  });
+  console.log('🐞 signout: jsonToken', jsonToken);
 
-  return res.status(200).send('Fitbit token deleted');
+  try {
+    const prevAccessToken = fitbitAuthClient.createToken(JSON.parse(jsonToken));
+    console.log('🐞 prevAccessToken: ', prevAccessToken);
+
+    prevAccessToken.revoke('access_token');
+    const deletedToken = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        fitbitAccount: {
+          delete: true,
+        },
+      },
+    });
+
+    console.log('Fitbit token deleted');
+    return res.status(200).json({ message: 'Fitbit token deleted' });
+  } catch (err) {
+    console.log('Error in signout');
+    return res.status(400).json({ message: 'Error in signout' });
+  }
 };
 export default fitbitSignoutHandler;

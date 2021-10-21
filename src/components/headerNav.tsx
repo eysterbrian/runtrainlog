@@ -34,7 +34,7 @@ import React from 'react';
 import { signIn, signOut, useSession } from 'next-auth/client';
 import NextLink from 'next/link';
 import { AddWorkoutModal } from './AddWorkoutModal';
-import router from 'next/router';
+import router, { useRouter } from 'next/router';
 import { fitbitSignin, fitbitSignout } from 'lib/client/fitbitAuth';
 
 const MobileNav: React.VFC<{ showMobileNav: UseDisclosureReturn }> = ({
@@ -100,6 +100,7 @@ const HeaderNav: React.VFC = () => {
   const showMobileNav = useDisclosure();
   const addWorkoutModalDisclosure = useDisclosure();
 
+  const router = useRouter();
   const [session, sessionStatus] = useSession();
   console.log('Session from headerNav: ', session);
 
@@ -187,16 +188,23 @@ const HeaderNav: React.VFC = () => {
                       <MenuItem>
                         {session.user?.name || 'Unknown'}&apos;s Profile
                       </MenuItem>
+                      <MenuDivider />
                       {!session.user.fitbitId ? (
-                        <MenuItem as="a" href="/api/fitbit/signin">
-                          Connect with Fitbit
-                        </MenuItem>
+                        <>
+                          <MenuItem as="a" href="/api/fitbit/signin">
+                            Connect with Fitbit URL
+                          </MenuItem>
+                          {/* <MenuItem onClick={fitbitSignin}>
+                            Connect with fitbitSignin()
+                          </MenuItem> */}
+                        </>
                       ) : (
                         <MenuItem
-                          onClick={() => {
-                            fitbitSignout().then((res) => {
-                              toast({ description: res });
-                            });
+                          onClick={async () => {
+                            // HACK: This blocks the UI while we wait for the signout
+                            const data = await fitbitSignout();
+                            toast({ description: JSON.stringify(data) });
+                            // router.reload();
                           }}>
                           Disconnect from Fitbit
                         </MenuItem>
