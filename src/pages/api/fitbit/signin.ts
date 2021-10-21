@@ -10,7 +10,7 @@
 
 import { NextApiHandler } from 'next';
 import { AuthorizationCode } from 'simple-oauth2';
-import { randomBytes } from 'crypto';
+import { getSession } from 'next-auth/client';
 
 export const fitbitAuthClient = new AuthorizationCode({
   client: {
@@ -25,16 +25,21 @@ export const fitbitAuthClient = new AuthorizationCode({
   },
 });
 
-export const FITBIT_STATE = randomBytes(4).toString('hex');
 export const FITBIT_SCOPE = 'activity profile heartrate sleep location';
 
-const fitbitLoginHandler: NextApiHandler = async (req, res) => {
-  console.log('FitBit Client ID: ', process.env.FITBIT_CLIENT_ID);
-  console.log('FitBit Client Secret: ', process.env.FITBIT_CLIENT_SECRET);
+const fitbitSigninHandler: NextApiHandler = async (req, res) => {
+  const session = await getSession({ req });
+  if (!session) {
+    return res.status(400).send('User must be logged-in');
+  }
+
+  // Pass the user ID as the state parameter
+  const state = session.user.id;
+
   const authUrl = fitbitAuthClient.authorizeURL({
     redirect_uri: process.env.FITBIT_REDIRECT,
     // response_type: 'code',
-    state: FITBIT_STATE,
+    state: state,
     scope: FITBIT_SCOPE,
   });
   console.log({ authUrl });
@@ -42,4 +47,4 @@ const fitbitLoginHandler: NextApiHandler = async (req, res) => {
   res.redirect(authUrl);
 };
 
-export default fitbitLoginHandler;
+export default fitbitSigninHandler;

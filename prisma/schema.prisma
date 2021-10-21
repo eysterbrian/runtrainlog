@@ -41,17 +41,18 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?        @unique
   emailVerified DateTime?
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   accounts      Account[]
   sessions      Session[]
-  fitbitAccount FitbitAccount?
-  workouts     Workout[]
+  fitbitId      String?        @unique
+  fitbitAccount FitbitAccount? @relation(fields: [fitbitId], references: [id])
+  workouts      Workout[]
 }
 
 model VerificationRequest {
@@ -70,39 +71,38 @@ model VerificationRequest {
 //
 
 model FitbitAccount {
-  id          String    @id
-  userId      String
-  token     Json?
-  user     User      @relation(fields: [userId], references: [id])
+  id    String @id
+  token String
+  user  User?
 }
 
 model Workout {
-  id         String   @id @default(cuid())
-  fitbitLogId  String?
-  userId    String
-  user     User      @relation(fields: [userId], references: [id])
+  id          String  @id @default(cuid())
+  fitbitLogId String?
+  userId      String
+  user        User    @relation(fields: [userId], references: [id])
 
   // Objective Workout Data
-  startTime   DateTime?
-  activeDuration   Int?
-  distance   Float?
-  elevation   Float?
-  pace    Float?
+  startTime      DateTime?
+  activeDuration Int?
+  distance       Float?
+  elevation      Float?
+  pace           Float?
   avgHeartRate   Int?
 
-  // Descriptions  
-  modality  WorkoutModality?
-  workoutType  WorkoutType?
-  description  String?
-  location  String?
-  listening String?
-  strengthExercises  String?
-  personalFeelings   String?
+  // Descriptions
+  modality          WorkoutModality?
+  workoutType       WorkoutType?
+  description       String?
+  location          String?
+  listening         String?
+  strengthExercises String?
+  personalFeelings  String?
 
   // Ratings
-  ratingEnergy Int?
+  ratingEnergy     Int?
   ratingDifficulty Int?
-  ratingGeneral Int?
+  ratingGeneral    Int?
 }
 
 enum WorkoutModality {

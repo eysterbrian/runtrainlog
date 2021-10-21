@@ -1,30 +1,56 @@
 import { AuthorizationCode, AuthorizationTokenConfig } from 'simple-oauth2';
 import { NextApiHandler } from 'next';
-import { fitbitAuthClient } from './login';
+import { fitbitAuthClient } from './signin';
+import prisma from 'lib/server/prisma';
 
 const fitbitCallbackHandler: NextApiHandler = async (req, res) => {
   const code = req.query?.code as string;
   console.log(req.query);
   const options: AuthorizationTokenConfig = {
     code,
-    redirect_uri: process.env.FITBIT_REDIRECT,
+    redirect_uri: process.env?.FITBIT_REDIRECT ?? '',
   };
+
+  // Get the userId from the state URL param passed to oauth during login
+  const userId = req.query?.state;
+  if (!userId || Array.isArray(userId)) {
+    console.log('Missing userId in state from fitbit callback');
+    return res.status(500).send('Missing userId in state from fitbit callback');
+  }
 
   try {
     const accessToken = await fitbitAuthClient.getToken(options);
 
-    console.log('Resulting token: ', accessToken);
+    console.log('Callback - Resulting token: ', accessToken);
 
-    console.log('stringified', JSON.stringify(accessToken));
-    /*
-    {"access_token":"eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM0JLWEIiLCJzdWIiOiI2OERLWFEiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJybG9jIHJociByYWN0IHJwcm8gcnNsZSIsImV4cCI6MTYzMzYxNjgzOSwiaWF0IjoxNjMzNTg4MDM5fQ.mK5pFEHRw9DStBQt1YAi8Bc5o0Cmr5COaTp5R7UpoUo","expires_in":28800,"refresh_token":"3bb4a34bff39b152126f28bc523256ace44ab9168a130f43b965a318ffd37eba","scope":"heartrate activity sleep profile location","token_type":"Bearer","user_id":"68DKXQ","expires_at":"2021-10-07T14:27:18.869Z"}
-    */
+    const fitbitUser = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        fitbitAccount: {
+          upsert: {
+            create: {
+              id: accessToken.token.user_id,
+              token: JSON.stringify(accessToken.token),
+            },
+            update: {
+              id: accessToken.token.user_id,
+              token: JSON.stringify(accessToken.token),
+            },
+          },
+        },
+      },
+      include: {
+        fitbitAccount: true,
+      },
+    });
 
-    // TODO: Store stringified accessToken in DB, and maybe also the current access_token?
-
-    return res.status(200).send(JSON.stringify(accessToken));
+    console.log(fitbitUser);
+    // return res.status(200).send(JSON.stringify(accessToken));
+    res.redirect(307, '/');
   } catch (error) {
-    console.log('Access token error', error.messsage);
+    console.log('Access token error', error);
     return res.status(500).json('Authentication failed');
   }
 };

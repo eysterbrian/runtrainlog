@@ -19,6 +19,7 @@ import {
   MenuItem,
   MenuButton,
   MenuDivider,
+  useToast,
 } from '@chakra-ui/react';
 import {
   AiFillBell,
@@ -33,6 +34,8 @@ import React from 'react';
 import { signIn, signOut, useSession } from 'next-auth/client';
 import NextLink from 'next/link';
 import { AddWorkoutModal } from './AddWorkoutModal';
+import router from 'next/router';
+import { fitbitSignin, fitbitSignout } from 'lib/client/fitbitAuth';
 
 const MobileNav: React.VFC<{ showMobileNav: UseDisclosureReturn }> = ({
   showMobileNav,
@@ -98,6 +101,9 @@ const HeaderNav: React.VFC = () => {
   const addWorkoutModalDisclosure = useDisclosure();
 
   const [session, sessionStatus] = useSession();
+  console.log('Session from headerNav: ', session);
+
+  const toast = useToast();
 
   const profileTooltip = session && (
     <>
@@ -181,6 +187,20 @@ const HeaderNav: React.VFC = () => {
                       <MenuItem>
                         {session.user?.name || 'Unknown'}&apos;s Profile
                       </MenuItem>
+                      {!session.user.fitbitId ? (
+                        <MenuItem as="a" href="/api/fitbit/signin">
+                          Connect with Fitbit
+                        </MenuItem>
+                      ) : (
+                        <MenuItem
+                          onClick={() => {
+                            fitbitSignout().then((res) => {
+                              toast({ description: res });
+                            });
+                          }}>
+                          Disconnect from Fitbit
+                        </MenuItem>
+                      )}
                       <MenuDivider />
                       <MenuItem
                         onClick={() =>

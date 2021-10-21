@@ -1,4 +1,4 @@
-import { Session } from 'next-auth';
+import { Session, User } from 'next-auth';
 
 declare module 'next-auth' {
   /**
@@ -12,6 +12,11 @@ declare module 'next-auth' {
       name: string;
       email: string;
       image: string;
+      fitbitId?: string;
     };
+  }
+
+  interface User {
+    fitbitId?: string;
   }
 }
