@@ -71,7 +71,7 @@ const fitbitTokenHandler: NextApiHandler = async (req, res) => {
 
         return res
           .status(200)
-          .json({ accessToken: newAccessToken.token.access_token.accessToken });
+          .json({ accessToken: newAccessToken.token.access_token });
       } catch (error: any) {
         console.log('Error refreshing access token: ', error.output);
         return res
@@ -80,7 +80,9 @@ const fitbitTokenHandler: NextApiHandler = async (req, res) => {
       }
     } else {
       console.log('Token not expired.  Refresh not needed.');
-      return res.status(200).json({ accessToken: prevAccessToken.token });
+      return res
+        .status(200)
+        .json({ accessToken: prevAccessToken.token.access_token });
     }
   } else if (req.method === 'DELETE') {
     /**

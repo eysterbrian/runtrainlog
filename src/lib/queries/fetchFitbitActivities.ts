@@ -1,5 +1,6 @@
 import { Session } from 'next-auth';
 import { useQuery } from 'react-query';
+import { format, add } from 'date-fns';
 
 /**
  *
@@ -13,8 +14,8 @@ export const fetchFitbitActivities = async (
     throw new Error('Missing access token');
   }
   const queryParams = new URLSearchParams({
-    beforeDate: '2021-10-22',
-    limit: '4',
+    beforeDate: format(add(new Date(), { days: 1 }), 'yyyy-MM-dd'),
+    limit: '5',
     offset: '0',
     sort: 'desc',
   });

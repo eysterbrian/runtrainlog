@@ -11,7 +11,7 @@ const fetchFitbitToken = async (): Promise<{ accessToken: string }> => {
     throw new Error('Network response error in fetchFitbitToken');
   }
   const data = await res.json();
-  if (!data?.accessToken?.access_token) {
+  if (!data?.accessToken) {
     throw new Error('Missing access token');
   }
   return { accessToken: data.accessToken };
