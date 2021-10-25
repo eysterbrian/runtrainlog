@@ -1,14 +1,13 @@
 import React from 'react';
 import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
+  Drawer,
+  DrawerBody,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
   Button,
-  Text,
   UseDisclosureReturn,
 } from '@chakra-ui/react';
 import { AddWorkoutForm, SubmittingState } from './AddWorkoutForm';
@@ -34,22 +33,24 @@ export const AddWorkoutModal: React.FC<Props> = ({ modalDisclosure }) => {
   }
   return (
     <>
-      <Modal
+      <Drawer
         blockScrollOnMount={false}
+        size="md"
+        placement="right"
         isOpen={modalDisclosure.isOpen}
         onClose={modalDisclosure.onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalCloseButton />
-          <ModalHeader>Add new workout</ModalHeader>
-          <ModalBody>
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader>Add new workout</DrawerHeader>
+          <DrawerBody>
             <AddWorkoutForm
               showSubmitButton={false}
               updateSubmitState={setSubmittingState}
             />
-          </ModalBody>
+          </DrawerBody>
 
-          <ModalFooter>
+          <DrawerFooter>
             <Button
               colorScheme="blue"
               mr={3}
@@ -61,9 +62,9 @@ export const AddWorkoutModal: React.FC<Props> = ({ modalDisclosure }) => {
             <Button variant="ghost" onClick={modalDisclosure.onClose}>
               Cancel
             </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </>
   );
 };
