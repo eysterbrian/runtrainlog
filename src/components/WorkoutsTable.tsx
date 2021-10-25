@@ -9,7 +9,6 @@ import {
   HStack,
   Badge,
   chakra,
-  VisuallyHidden,
   Menu,
   MenuButton,
   MenuOptionGroup,
@@ -18,12 +17,6 @@ import {
   MenuList,
   MenuItemOption,
   useDisclosure,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
   useToast,
 } from '@chakra-ui/react';
 import {
@@ -32,42 +25,19 @@ import {
   DeleteIcon,
   ChevronDownIcon,
 } from '@chakra-ui/icons';
-import { FocusableElement } from '@chakra-ui/utils';
 import { useTable, useSortBy, useFilters, Column, Row } from 'react-table';
 import { Workout } from '@prisma/client';
 import { useSession } from 'next-auth/client';
 import { useMutation, useQueryClient } from 'react-query';
 import { parseISO, format, addSeconds, isValid } from 'date-fns';
-import { TRatingsIcon, getRatingsIcon } from 'lib/utils/ratingsIcon';
 import { fetchDeleteWorkout } from 'lib/queries/fetchDeleteWorkout';
 import { LoadingModal } from 'components/Loading';
 import { DeleteWorkoutConfirm } from './DeleteWorkoutAlert';
+import { getRatingsIconComponent } from './IconRatingDisplay';
 
 type Props = {
   workouts: Workout[];
 };
-
-/**
- * HOC that returns a component for use with the Column's Cell option
- * @param iconType
- * @returns
- */
-function getRatingsIconComponent(
-  iconType: TRatingsIcon
-): React.FC<{ value: number }> {
-  const MyIcon = getRatingsIcon(iconType);
-  const StarRating: React.FC<{ value: number }> = ({ value }) => {
-    return (
-      <HStack wrap="nowrap" justifyContent="flex-end" spacing={0}>
-        <VisuallyHidden>{value}</VisuallyHidden>
-        {Array.from({ length: value }, (_, idx) => (
-          <MyIcon key={idx} />
-        ))}
-      </HStack>
-    );
-  };
-  return StarRating;
-}
 
 /**
  * Displays table view of the given workouts
