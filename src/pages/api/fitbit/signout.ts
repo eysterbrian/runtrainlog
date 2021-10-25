@@ -7,11 +7,11 @@ import { fitbitAuthClient } from './signin';
 const fitbitSignoutHandler: NextApiHandler = async (req, res) => {
   const session = await getSession({ req });
   if (!session) {
-    return res.status(400).send('User must be logged-in');
+    return res.status(401).send('User must be logged-in');
   }
   const userId = session.user?.id;
   if (!userId || typeof userId !== 'string') {
-    return res.status(400).send('Invalid userId');
+    return res.status(400).send('Malformed userId');
   }
 
   // Get the user's fitbit token
@@ -27,7 +27,7 @@ const fitbitSignoutHandler: NextApiHandler = async (req, res) => {
   const jsonToken = user?.fitbitAccount?.token;
   if (!jsonToken) {
     console.log('🐞 No fitbit account for this user');
-    return res.status(400).json({ message: 'No Fitbit account for this user' });
+    return res.status(410).json({ message: 'No Fitbit account for this user' });
   }
 
   console.log('🐞 signout: jsonToken', jsonToken);

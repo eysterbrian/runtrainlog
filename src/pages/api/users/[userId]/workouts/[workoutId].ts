@@ -5,13 +5,13 @@ import { getSession } from 'next-auth/client';
 const handler: NextApiHandler = async (req, res) => {
   const session = await getSession({ req });
   if (!session) {
-    return res.status(400).send('User must be logged-in');
+    return res.status(401).send('User must be logged-in');
   }
 
   const userId =
     req.query?.userId === 'me' ? session.user?.id : req.query?.userId;
   if (!userId || typeof userId !== 'string') {
-    return res.status(400).send('Invalid userId');
+    return res.status(400).send('Malformed userId');
   }
 
   /**
@@ -44,7 +44,7 @@ const handler: NextApiHandler = async (req, res) => {
       },
     });
     if (workout?.user?.id !== userId) {
-      return res.status(400).send('User not allowed to delete this workout');
+      return res.status(403).send('User not allowed to delete this workout');
     }
 
     // Delete the workout
@@ -55,6 +55,9 @@ const handler: NextApiHandler = async (req, res) => {
     });
     return res.status(200).json(deletedWorkout);
   }
+
+  res.setHeader('Allow', ['DELETE']);
+  res.status(405).end(`Method ${req?.method} Not Allowed`);
 };
 
 export default handler;

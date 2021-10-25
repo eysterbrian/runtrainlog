@@ -31,7 +31,7 @@ export const FITBIT_SCOPE = 'activity profile heartrate sleep location';
 const fitbitSigninHandler: NextApiHandler = async (req, res) => {
   const session = await getSession({ req });
   if (!session) {
-    return res.status(400).send('User must be logged-in');
+    return res.status(401).send('User must be logged-in');
   }
 
   // Pass the user ID as the state parameter

@@ -8,13 +8,13 @@ import { newWorkoutSchema } from 'lib/validators/addWorkoutSchema';
 const handler: NextApiHandler = async (req, res) => {
   const session = await getSession({ req });
   if (!session) {
-    return res.status(400).send('User must be logged-in');
+    return res.status(401).send('User must be logged-in');
   }
 
   const userId =
     req.query?.userId === 'me' ? session.user?.id : req.query?.userId;
   if (!userId || typeof userId !== 'string') {
-    return res.status(400).send('Invalid userId');
+    return res.status(400).send('Malformed userId');
   }
 
   //
@@ -34,11 +34,10 @@ const handler: NextApiHandler = async (req, res) => {
       },
     });
     return res.status(200).json(workouts);
-  } 
+  } else if (req.method === 'POST') {
   /**
    * Create a new workout for this user
    */
-  else if (req.method === 'POST') {
     console.log('🏃  workout POST handler', req.body);
 
     try {
@@ -61,7 +60,7 @@ const handler: NextApiHandler = async (req, res) => {
           workouts: true,
         },
       });
-      return res.status(200).json(workouts);
+      return res.status(201).json(workouts);
     } catch (err) {
       console.log('Catch in POST method');
       console.log(err);
@@ -69,7 +68,8 @@ const handler: NextApiHandler = async (req, res) => {
     }
   }
 
-  res.status(200).send('Invalid request');
+  res.setHeader('Allow', ['GET', 'POST']);
+  res.status(405).end(`Method ${req?.method ?? '??'} Not Allowed`);
 };
 
 export default handler;

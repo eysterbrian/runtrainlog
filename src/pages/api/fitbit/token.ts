@@ -15,11 +15,11 @@ const EXPIRATION_WINDOW_IN_SECONDS = 300; // Window of time before the actual ex
 const fitbitTokenHandler: NextApiHandler = async (req, res) => {
   const session = await getSession({ req });
   if (!session) {
-    return res.status(400).send('User must be logged-in');
+    return res.status(401).send('User must be logged-in');
   }
   const userId = session.user?.id;
   if (!userId || typeof userId !== 'string') {
-    return res.status(400).send('Invalid userId');
+    return res.status(400).send('Malformed userId');
   }
 
   /**
@@ -90,6 +90,7 @@ const fitbitTokenHandler: NextApiHandler = async (req, res) => {
      */
   }
 
-  return res.status(2400).json({ message: 'Unsupported operation' });
+  res.setHeader('Allow', ['GET']);
+  return res.status(405).end(`Method ${req?.method} is not supported`);
 };
 export default fitbitTokenHandler;
