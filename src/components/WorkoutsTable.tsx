@@ -15,6 +15,7 @@ import {
   Button,
   IconButton,
   MenuList,
+  Text,
   MenuItemOption,
   useDisclosure,
   useToast,
@@ -24,16 +25,29 @@ import {
   TriangleUpIcon,
   DeleteIcon,
   ChevronDownIcon,
+  ChevronRightIcon,
+  CheckCircleIcon,
+  AddIcon,
 } from '@chakra-ui/icons';
-import { useTable, useSortBy, useFilters, Column, Row } from 'react-table';
+import {
+  useTable,
+  useSortBy,
+  useFilters,
+  Column,
+  Row,
+  useGroupBy,
+  useExpanded,
+  TableOptions,
+} from 'react-table';
 import { Workout } from '@prisma/client';
 import { useSession } from 'next-auth/client';
 import { useMutation, useQueryClient } from 'react-query';
-import { parseISO, format, addSeconds, isValid } from 'date-fns';
+import { parseISO, format, isValid } from 'date-fns';
 import { fetchDeleteWorkout } from 'lib/queries/fetchDeleteWorkout';
 import { LoadingModal } from 'components/Loading';
 import { DeleteWorkoutConfirm } from './DeleteWorkoutAlert';
 import { getRatingsIconComponent } from './IconRatingDisplay';
+import { getMphToMinutes, getWeekOfYearStr } from 'lib/utils/units';
 
 type Props = {
   workouts: Workout[];
@@ -51,8 +65,27 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   const columns: Array<Column<Workout>> = React.useMemo(
     () => [
       {
+        Header: 'Date',
+        accessor: 'startTime',
+        Cell: ({ value }) => {
+          // Type of value isn't really Date, despite using Workout as the type
+          // The API returns the value as JSON which converts it to type string
+          // So we force cast of the value to a string then parse it.
+          const date: Date = parseISO(value as unknown as string);
+          return !value
+            ? 'Unknown Date'
+            : `${format(date, 'EEEE, M/d/y')} (${getWeekOfYearStr(value)})`;
+        },
+        Aggregated: ({ value }) => `Week #${getWeekOfYearStr(value)}`,
+      },
+      {
         Header: 'Description',
         accessor: 'description',
+        Aggregated: () => (
+          <Text fontWeight="thin" fontSize="sm" fontStyle="italic">
+            Summary
+          </Text>
+        ),
       },
       {
         Header: 'Modality',
@@ -66,6 +99,8 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
             </Badge>
           );
         },
+        aggregate: 'uniqueCount',
+        Aggregated: ({ value }) => `${value} (unique)`,
       },
       {
         Header: 'Workout Type',
@@ -78,47 +113,56 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
             </Badge>
           );
         },
+        aggregate: 'uniqueCount',
+        Aggregated: ({ value }) => `${value} (unique)`,
+      },
+
+      {
+        Header: 'Distance (miles)',
+        accessor: 'distance',
+        isNumeric: true,
+        aggregate: 'sum',
+        Aggregated: ({ value }) => `${Math.round(value)} (sum)`,
       },
       {
-        Header: 'Date',
-        accessor: 'startTime',
-        Cell: ({ value }) => {
-          // Type of value isn't really Date, despite using Workout as the type
-          // The API returns the value as JSON which converts it to type string
-          // So we force cast of the value to a string then parse it.
-          const date: Date = parseISO(value as unknown as string);
-          return !value ? 'Unknown Date' : format(date, 'EEEE, M/d/y');
-        },
+        Header: 'Elevation (feet)',
+        accessor: 'elevation',
+        isNumeric: true,
+        aggregate: 'sum',
+        Aggregated: ({ value }) => `${Math.round(value)} (sum)`,
       },
-      { Header: 'Distance (miles)', accessor: 'distance', isNumeric: true },
-      { Header: 'Elevation (feet)', accessor: 'elevation', isNumeric: true },
       {
         Header: 'Pace',
         accessor: 'pace',
         isNumeric: true,
-        Cell: ({ value: mph }) => {
-          if (!mph) return 'Unknown';
-          const paceMinutes = addSeconds(new Date(0), (60 / mph) * 60);
-          return format(paceMinutes, 'm:ss');
-        },
+        Cell: ({ value: mph }: { value: number }) =>
+          !mph ? 'Unknown' : getMphToMinutes(mph),
+        aggregate: 'average',
+        Aggregated: ({ value }) => `${getMphToMinutes(value)} (avg)`,
       },
       {
         Header: 'Energy',
         accessor: 'ratingEnergy',
         isNumeric: true,
         Cell: getRatingsIconComponent('Energy'),
+        aggregate: 'average',
+        Aggregated: ({ value }) => `${Math.round(value)} (avg)`,
       },
       {
         Header: 'Difficulty',
         accessor: 'ratingDifficulty',
         isNumeric: true,
         Cell: getRatingsIconComponent('Difficulty'),
+        aggregate: 'average',
+        Aggregated: ({ value }) => `${Math.round(value)} (avg)`,
       },
       {
         Header: 'General',
         accessor: 'ratingGeneral',
         isNumeric: true,
         Cell: getRatingsIconComponent('Star'),
+        aggregate: 'average',
+        Aggregated: ({ value }) => `${Math.round(value)} (avg)`,
       },
     ],
     []
@@ -126,6 +170,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   const data = React.useMemo<Workout[]>(() => workouts, [workouts]);
 
   const [session] = useSession();
+
   const queryClient = useQueryClient();
   const deleteWorkoutMutation = useMutation(fetchDeleteWorkout, {
     onSuccess: () => {
@@ -133,10 +178,11 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       queryClient.invalidateQueries(['workouts', session?.user?.id]);
     },
   });
-  const toast = useToast();
 
   const showConfirmDelete = useDisclosure();
   const [deleteRow, setDeleteRow] = React.useState<Workout>();
+
+  const toast = useToast();
 
   /**
    * Delete the workout
@@ -201,6 +247,31 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     [deleteWorkoutMutation.isLoading, showConfirmDelete]
   );
 
+  /**
+   * If columnId is the 'startTime" column, then we group by the week number
+   * @param rows
+   * @param columnId
+   * @returns
+   */
+  // TODO: This needs to be wrapped in useCallback
+  const groupByWeek: TableOptions<Workout>['groupByFn'] = (rows, columnId) => {
+    return rows.reduce(
+      (prev: Record<number | string, Array<Row<Workout>>>, row, i) => {
+        let resKey: string | number = row.values[columnId];
+        if (columnId === 'startTime') {
+          const date: Date = parseISO(
+            row.values[columnId] as unknown as string
+          );
+          resKey = !resKey ? 'Unknown' : getWeekOfYearStr(date);
+        }
+        prev[resKey] = Array.isArray(prev[resKey]) ? prev[resKey] : [];
+        prev[resKey].push(row);
+        return prev;
+      },
+      {}
+    );
+  };
+
   const {
     getTableBodyProps,
     getTableProps,
@@ -209,16 +280,25 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     setAllFilters,
     prepareRow,
     allColumns,
-  } = useTable({ columns, data: workouts }, useFilters, useSortBy, (hooks) => {
-    hooks.visibleColumns.push((columns) => [
-      {
-        id: 'modifyRow',
-        accessor: 'id',
-        Cell: ({ row }) => <DeleteIconButton row={row} />,
-      },
-      ...columns,
-    ]);
-  });
+  } = useTable(
+    { columns, data: workouts, groupByFn: React.useCallback(groupByWeek, []) },
+    useFilters,
+    useGroupBy,
+    useSortBy,
+    useExpanded,
+    (hooks) => {
+      hooks.visibleColumns.push((columns) => [
+        {
+          id: 'modifyRow',
+          accessor: 'id',
+          Cell: ({ row }) => <DeleteIconButton row={row} />,
+        },
+        ...columns,
+      ]);
+    }
+  );
+
+  console.log('allCollumns: ', allColumns);
 
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
@@ -244,7 +324,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
                   value={column.id}
                   isChecked={column.isVisible}
                   onClick={() => column.toggleHidden()}>
-                  {column.id}
+                  {column.id === 'modifyRow' ? 'Delete' : column.Header}
                 </MenuItemOption>
               );
             })}
@@ -298,6 +378,16 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
                   // overflow="hidden"
                   {...column.getHeaderProps(column.getSortByToggleProps())}
                   isNumeric={column.isNumeric}>
+                  {column.canGroupBy ? (
+                    // If the column can be grouped, let's add a toggle
+                    <span {...column.getGroupByToggleProps()}>
+                      {column.isGrouped ? (
+                        <CheckCircleIcon color="brand.300" boxSize="4" m="2" />
+                      ) : (
+                        <AddIcon color="secondary.300" boxSize="3" m="2" />
+                      )}
+                    </span>
+                  ) : null}
                   {column.render('Header')}
                   <chakra.span pl="4">
                     {column.isSorted ? (
@@ -321,8 +411,35 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
                 {row.cells.map((cell) => (
                   <Td
                     {...cell.getCellProps()}
+                    bg={
+                      cell.isGrouped
+                        ? 'brand.800'
+                        : cell.isAggregated
+                        ? 'secondary.800'
+                        : cell.isPlaceholder
+                        ? 'white.800'
+                        : 'transparent'
+                    }
                     isNumeric={cell.column.isNumeric}>
-                    {cell.render('Cell')}
+                    {cell.isGrouped ? (
+                      // If it's a grouped cell, add an expander and row count
+                      <>
+                        <span {...row.getToggleRowExpandedProps()}>
+                          {row.isExpanded ? (
+                            <ChevronDownIcon boxSize="6" />
+                          ) : (
+                            <ChevronRightIcon boxSize="6" />
+                          )}
+                          {cell.render('Aggregated')} ({row.subRows.length})
+                        </span>{' '}
+                      </>
+                    ) : cell.isAggregated ? (
+                      // If the cell is aggregated, use the Aggregated
+                      // renderer for cell
+                      cell.render('Aggregated')
+                    ) : (
+                      cell.render('Cell')
+                    )}
                   </Td>
                 ))}
               </Tr>

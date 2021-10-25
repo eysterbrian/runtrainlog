@@ -41,7 +41,7 @@ async function main() {
     ...new Array(10),
   ].map(() => {
     return {
-      startTime: faker.date.past(1), // Dates in the past year
+      startTime: faker.date.recent(21), // Dates in the past 3 weeks
       activeDuration: faker.datatype.number({
         min: 60 * 20, // duraction is in seconds, so this is from 20 minutes
         max: 60 * 90, // to 90 minutes
