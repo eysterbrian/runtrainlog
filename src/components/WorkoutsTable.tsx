@@ -40,7 +40,8 @@ import { useMutation, useQueryClient } from 'react-query';
 import { parseISO, format, addSeconds, isValid } from 'date-fns';
 import { TRatingsIcon, getRatingsIcon } from 'lib/utils/ratingsIcon';
 import { fetchDeleteWorkout } from 'lib/queries/fetchDeleteWorkout';
-import { Loading, LoadingModal } from 'components/Loading';
+import { LoadingModal } from 'components/Loading';
+import { DeleteWorkoutConfirm } from './DeleteWorkoutAlert';
 
 type Props = {
   workouts: Workout[];
@@ -165,8 +166,53 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   const toast = useToast();
 
   const showConfirmDelete = useDisclosure();
-  const cancelRef = React.useRef<HTMLButtonElement | null>(null);
   const [deleteRow, setDeleteRow] = React.useState<Workout>();
+
+  /**
+   * Delete the workout
+   */
+  const onDeleteWorkout = () => {
+    const deletedWorkout = deleteWorkoutMutation.mutate(deleteRow?.id ?? '', {
+      onError: (error) => {
+        console.log(error);
+        toast({
+          title: 'Error Deleting Workout',
+          status: 'error',
+        });
+      },
+      onSuccess: (deletedWorkout) => {
+        console.log('onSuccess', deletedWorkout);
+
+        const date: Date = parseISO(
+          deletedWorkout?.startTime as unknown as string
+        );
+        const dateStr = !date ? 'Unknown Date' : format(date, 'EEEE, M/d/y');
+
+        toast({
+          title: 'Workout Deleted.',
+          description: `The workout from ${dateStr} is deleted.`,
+          status: 'success',
+          duration: 9000,
+          isClosable: true,
+        });
+      },
+      onSettled: () => {
+        console.log('onSettled');
+        setDeleteRow(undefined);
+        showConfirmDelete.onClose();
+      },
+    });
+  };
+
+  // Calculate date of the row to be deleted for use in confirmation dialog
+  let deleteRowDate: Date | undefined = undefined;
+  if (deleteRow) {
+    deleteRowDate = parseISO(deleteRow?.startTime as unknown as string);
+  }
+  const deleteWorkoutDateStr =
+    !deleteRowDate || !isValid(deleteRowDate)
+      ? 'Unknown Date'
+      : format(deleteRowDate, 'EEEE, M/d/y');
 
   const DeleteIconButton: React.FC<{ row: Row<Workout> }> = React.useCallback(
     ({ row }) => (
@@ -182,7 +228,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         }}
       />
     ),
-    [deleteWorkoutMutation, showConfirmDelete]
+    [deleteWorkoutMutation.isLoading, showConfirmDelete]
   );
 
   const {
@@ -203,16 +249,6 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       ...columns,
     ]);
   });
-
-  // Calculate date of the row to be deleted for use in confirmation dialog
-  let deleteRowDate: Date | undefined = undefined;
-  if (deleteRow) {
-    deleteRowDate = parseISO(deleteRow?.startTime as unknown as string);
-  }
-  const deleteWorkoutDateStr =
-    !deleteRowDate || !isValid(deleteRowDate)
-      ? 'Unknown Date'
-      : format(deleteRowDate, 'EEEE, M/d/y');
 
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
@@ -325,72 +361,11 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         </Tbody>
       </Table>
 
-      <AlertDialog
-        isOpen={showConfirmDelete.isOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={showConfirmDelete.onClose}>
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Workout
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              Are you sure you want to delete the{' '}
-              <strong>{deleteWorkoutDateStr}</strong> workout? You cannot undo
-              this action.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={showConfirmDelete.onClose}>
-                Cancel
-              </Button>
-              <Button
-                colorScheme="red"
-                onClick={() => {
-                  const deletedWorkout = deleteWorkoutMutation.mutate(
-                    deleteRow?.id ?? '',
-                    {
-                      onError: (error) => {
-                        console.log(error);
-                        toast({
-                          title: 'Error Deleting Workout',
-                          status: 'error',
-                        });
-                      },
-                      onSuccess: (deletedWorkout) => {
-                        console.log('onSuccess', deletedWorkout);
-
-                        const date: Date = parseISO(
-                          deletedWorkout?.startTime as unknown as string
-                        );
-                        const dateStr = !date
-                          ? 'Unknown Date'
-                          : format(date, 'EEEE, M/d/y');
-
-                        toast({
-                          title: 'Workout Deleted.',
-                          description: `The workout from ${dateStr} is deleted.`,
-                          status: 'success',
-                          duration: 9000,
-                          isClosable: true,
-                        });
-                      },
-                      onSettled: () => {
-                        console.log('onSettled');
-                        setDeleteRow(undefined);
-                        showConfirmDelete.onClose();
-                      },
-                    }
-                  );
-                }}
-                ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+      <DeleteWorkoutConfirm
+        showDialog={showConfirmDelete}
+        workoutDateStr={deleteWorkoutDateStr}
+        onDeleteHandler={onDeleteWorkout}
+      />
     </>
   );
 };
