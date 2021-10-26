@@ -50,6 +50,7 @@ import { LoadingModal } from 'components/Loading';
 import { DeleteWorkoutConfirm } from './DeleteWorkoutAlert';
 import { getRatingsIconComponent } from './IconRatingDisplay';
 import { getMphToMinutes, getWeekOfYearStr } from 'lib/utils/units';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 type Props = {
   workouts: Workout[];
@@ -343,6 +344,21 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
 
   const isGroupByWeek = state.groupBy.includes('startTime');
 
+  /**
+   * Handlers and hotkeys for groupby summaries and expand/collapse
+   */
+  useHotkeys('cmd+e', () => toggleAllRowsExpanded(true));
+  useHotkeys('cmd+shift+e', () => toggleAllRowsExpanded(false));
+
+  function toggleSummaries() {
+    toggleGroupBy('startTime');
+    // We're toggling groupBy 'on', so make sure to sort by startTime column as well
+    if (!isGroupByWeek) {
+      setSortBy([...state.sortBy, { id: 'startTime', desc: false }]);
+    }
+  }
+  useHotkeys('ctrl+e', toggleSummaries);
+
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
   return (
@@ -360,23 +376,15 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
             Summary
           </MenuButton>
           <MenuList minWidth="240px">
-            <MenuItem
-              onClick={() => {
-                toggleGroupBy('startTime');
-                // We're toggling groupBy 'on', so make sure to sort by startTime column as well
-                if (!isGroupByWeek) {
-                  setSortBy([
-                    ...state.sortBy,
-                    { id: 'startTime', desc: false },
-                  ]);
-                }
-              }}>
+            <MenuItem command="^E" onClick={toggleSummaries}>
               {isGroupByWeek ? 'Hide' : 'Show'} Weekly Summary
             </MenuItem>
-            <MenuItem onClick={() => toggleAllRowsExpanded(true)}>
+            <MenuItem command="⌘E" onClick={() => toggleAllRowsExpanded(true)}>
               Expand All
             </MenuItem>
-            <MenuItem onClick={() => toggleAllRowsExpanded(false)}>
+            <MenuItem
+              command="⇧⌘E"
+              onClick={() => toggleAllRowsExpanded(false)}>
               Collapse All
             </MenuItem>
           </MenuList>
