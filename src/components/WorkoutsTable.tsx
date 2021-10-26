@@ -83,6 +83,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         accessor: 'description',
         aggregate: 'count',
         Aggregated: ({ value }) => `${value} workouts`,
+        disableGroupBy: true,
       },
       {
         Header: 'Modality',
@@ -96,12 +97,13 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
             </Badge>
           );
         },
+        disableGroupBy: true,
         aggregate: (values) =>
           values.reduce(
             (count, currModality) => count + (currModality === 'RUN' ? 1 : 0),
             0
           ),
-        Aggregated: ({ value }) => `${value} runs`,
+        Aggregated: ({ value }) => `${value} ${value === 1 ? 'run' : 'runs'}`,
       },
       {
         Header: 'Workout Type',
@@ -114,6 +116,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
             </Badge>
           );
         },
+        disableGroupBy: true,
         aggregate: (values) =>
           values.reduce(
             (count, currModality) =>
@@ -127,6 +130,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         Header: 'Distance (miles)',
         accessor: 'distance',
         isNumeric: true,
+        disableGroupBy: true,
         aggregate: 'sum',
         Aggregated: ({ value }) => (
           <Tooltip
@@ -141,6 +145,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         Header: 'Elevation (feet)',
         accessor: 'elevation',
         isNumeric: true,
+        disableGroupBy: true,
         aggregate: 'sum',
         Aggregated: ({ value }) => (
           <Tooltip
@@ -157,6 +162,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         isNumeric: true,
         Cell: ({ value: mph }: { value: number }) =>
           !mph ? 'Unknown' : getMphToMinutes(mph),
+        disableGroupBy: true,
         aggregate: 'average',
         Aggregated: ({ value }) => (
           <Tooltip label={`Avg ${getMphToMinutes(value)}`}>
@@ -169,6 +175,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         accessor: 'ratingEnergy',
         isNumeric: true,
         Cell: getRatingsIconComponent('Energy'),
+        disableGroupBy: true,
         aggregate: 'average',
         Aggregated: ({ value }) => `${Math.round(value * 10) / 10}`,
       },
@@ -177,6 +184,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         accessor: 'ratingDifficulty',
         isNumeric: true,
         Cell: getRatingsIconComponent('Difficulty'),
+        disableGroupBy: true,
         aggregate: 'average',
         Aggregated: ({ value }) => `${Math.round(value * 10) / 10}`,
       },
@@ -185,6 +193,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         accessor: 'ratingGeneral',
         isNumeric: true,
         Cell: getRatingsIconComponent('Star'),
+        disableGroupBy: true,
         aggregate: 'average',
         Aggregated: ({ value }) => `${Math.round(value * 10) / 10}`,
       },
@@ -325,6 +334,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
           id: 'modifyRow',
           accessor: 'id',
           Cell: ({ row }) => <DeleteIconButton row={row} />,
+          disableGroupBy: true,
         },
         ...columns,
       ]);
