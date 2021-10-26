@@ -17,6 +17,7 @@ import {
   IconButton,
   MenuList,
   Text,
+  Tooltip,
   MenuItemOption,
   useDisclosure,
   useToast,
@@ -73,20 +74,15 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
           // The API returns the value as JSON which converts it to type string
           // So we force cast of the value to a string then parse it.
           const date: Date = parseISO(value as unknown as string);
-          return !value
-            ? 'Unknown Date'
-            : `${format(date, 'EEEE, M/d/y')} (${getWeekOfYearStr(value)})`;
+          return !value ? 'Unknown Date' : `${format(date, 'EEEE, M/d/y')}`;
         },
         Aggregated: ({ value }) => `Week #${getWeekOfYearStr(value)}`,
       },
       {
         Header: 'Description',
         accessor: 'description',
-        Aggregated: () => (
-          <Text fontWeight="thin" fontSize="sm" fontStyle="italic">
-            Summary
-          </Text>
-        ),
+        aggregate: 'count',
+        Aggregated: ({ value }) => `${value} workouts`,
       },
       {
         Header: 'Modality',
@@ -100,8 +96,12 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
             </Badge>
           );
         },
-        aggregate: 'uniqueCount',
-        Aggregated: ({ value }) => `${value} (unique)`,
+        aggregate: (values) =>
+          values.reduce(
+            (count, currModality) => count + (currModality === 'RUN' ? 1 : 0),
+            0
+          ),
+        Aggregated: ({ value }) => `${value} runs`,
       },
       {
         Header: 'Workout Type',
@@ -114,8 +114,13 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
             </Badge>
           );
         },
-        aggregate: 'uniqueCount',
-        Aggregated: ({ value }) => `${value} (unique)`,
+        aggregate: (values) =>
+          values.reduce(
+            (count, currModality) =>
+              count + (currModality === 'CROSSTRAIN' ? 1 : 0),
+            0
+          ),
+        Aggregated: ({ value }) => `${value} x-train`,
       },
 
       {
@@ -123,14 +128,28 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         accessor: 'distance',
         isNumeric: true,
         aggregate: 'sum',
-        Aggregated: ({ value }) => `${Math.round(value)} (sum)`,
+        Aggregated: ({ value }) => (
+          <Tooltip
+            label={`Total ${(Math.round(value * 100) / 100).toLocaleString(
+              'en-US'
+            )} miles`}>
+            <Text>{(Math.round(value * 10) / 10).toLocaleString('en-US')}</Text>
+          </Tooltip>
+        ),
       },
       {
         Header: 'Elevation (feet)',
         accessor: 'elevation',
         isNumeric: true,
         aggregate: 'sum',
-        Aggregated: ({ value }) => `${Math.round(value)} (sum)`,
+        Aggregated: ({ value }) => (
+          <Tooltip
+            label={`Total ${(Math.round(value * 10) / 10).toLocaleString(
+              'en-US'
+            )} feet`}>
+            <Text>{Math.round(value).toLocaleString('en-US')}</Text>
+          </Tooltip>
+        ),
       },
       {
         Header: 'Pace',
@@ -139,7 +158,11 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         Cell: ({ value: mph }: { value: number }) =>
           !mph ? 'Unknown' : getMphToMinutes(mph),
         aggregate: 'average',
-        Aggregated: ({ value }) => `${getMphToMinutes(value)} (avg)`,
+        Aggregated: ({ value }) => (
+          <Tooltip label={`Avg ${getMphToMinutes(value)}`}>
+            <Text>{getMphToMinutes(value)}</Text>
+          </Tooltip>
+        ),
       },
       {
         Header: 'Energy',
@@ -147,7 +170,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         isNumeric: true,
         Cell: getRatingsIconComponent('Energy'),
         aggregate: 'average',
-        Aggregated: ({ value }) => `${Math.round(value)} (avg)`,
+        Aggregated: ({ value }) => `${Math.round(value * 10) / 10}`,
       },
       {
         Header: 'Difficulty',
@@ -155,7 +178,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         isNumeric: true,
         Cell: getRatingsIconComponent('Difficulty'),
         aggregate: 'average',
-        Aggregated: ({ value }) => `${Math.round(value)} (avg)`,
+        Aggregated: ({ value }) => `${Math.round(value * 10) / 10}`,
       },
       {
         Header: 'General',
@@ -163,7 +186,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         isNumeric: true,
         Cell: getRatingsIconComponent('Star'),
         aggregate: 'average',
-        Aggregated: ({ value }) => `${Math.round(value)} (avg)`,
+        Aggregated: ({ value }) => `${Math.round(value * 10) / 10}`,
       },
     ],
     []
@@ -260,10 +283,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       (prev: Record<number | string, Array<Row<Workout>>>, row, i) => {
         let resKey: string | number = row.values[columnId];
         if (columnId === 'startTime') {
-          const date: Date = parseISO(
-            row.values[columnId] as unknown as string
-          );
-          resKey = !resKey ? 'Unknown' : getWeekOfYearStr(date);
+          resKey = !resKey ? 'Unknown' : getWeekOfYearStr(row.values[columnId]);
         }
         prev[resKey] = Array.isArray(prev[resKey]) ? prev[resKey] : [];
         prev[resKey].push(row);
@@ -476,7 +496,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
                           ) : (
                             <ChevronRightIcon boxSize="6" />
                           )}
-                          {cell.render('Aggregated')} ({row.subRows.length})
+                          {cell.render('Aggregated')}
                         </span>{' '}
                       </>
                     ) : cell.isAggregated ? (
