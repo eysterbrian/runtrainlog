@@ -38,8 +38,12 @@ async function main() {
   });
 
   const newWorkouts: Prisma.WorkoutCreateWithoutUserInput[] = [
-    ...new Array(10),
+    ...new Array(16),
   ].map(() => {
+    const modality = faker.random.arrayElement([
+      ...new Array(4).fill('RUN'), // Increase likelihood of 'RUN'
+      ...Object.values(WorkoutModality),
+    ]) as WorkoutModality;
     return {
       startTime: faker.date.recent(21), // Dates in the past 3 weeks
       activeDuration: faker.datatype.number({
@@ -50,11 +54,11 @@ async function main() {
       elevation: faker.datatype.float({ min: 50, max: 1500 }),
       pace: faker.datatype.float({ min: 60 / 13, max: 60 / 6 }),
       avgHeartRate: faker.datatype.number({ min: 100, max: 130 }),
-      modality: faker.random.arrayElement([
-        ...new Array(4).fill('RUN'), // Increase likelihood of 'RUN'
-        ...Object.values(WorkoutModality),
-      ]) as WorkoutModality,
-      workoutType: faker.random.objectElement(WorkoutType) as WorkoutType,
+      modality,
+      workoutType:
+        modality !== 'RUN'
+          ? 'CROSSTRAIN'
+          : (faker.random.objectElement(WorkoutType) as WorkoutType),
       description: faker.lorem.sentence(),
       location: faker.address.streetName(),
       listening: faker.music.genre(),
