@@ -11,6 +11,7 @@ import {
   chakra,
   Menu,
   MenuButton,
+  MenuItem,
   MenuOptionGroup,
   Button,
   IconButton,
@@ -253,8 +254,8 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
    * @param columnId
    * @returns
    */
-  // TODO: This needs to be wrapped in useCallback
-  const groupByWeek: TableOptions<Workout>['groupByFn'] = (rows, columnId) => {
+  type GroupByFnType = Exclude<TableOptions<Workout>['groupByFn'], undefined>;
+  const groupByWeek = React.useCallback<GroupByFnType>((rows, columnId) => {
     return rows.reduce(
       (prev: Record<number | string, Array<Row<Workout>>>, row, i) => {
         let resKey: string | number = row.values[columnId];
@@ -270,18 +271,30 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       },
       {}
     );
-  };
+  }, []);
 
   const {
     getTableBodyProps,
     getTableProps,
     headerGroups,
     rows,
+    state,
     setAllFilters,
     prepareRow,
     allColumns,
+    toggleGroupBy,
+    setSortBy,
+    toggleAllRowsExpanded,
   } = useTable(
-    { columns, data: workouts, groupByFn: React.useCallback(groupByWeek, []) },
+    {
+      columns,
+      data: workouts,
+      groupByFn: groupByWeek,
+      initialState: {
+        groupBy: ['startTime'],
+        sortBy: [{ id: 'startTime', desc: false }],
+      },
+    },
     useFilters,
     useGroupBy,
     useSortBy,
@@ -298,7 +311,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     }
   );
 
-  console.log('allCollumns: ', allColumns);
+  const isGroupByWeek = state.groupBy.includes('startTime');
 
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
@@ -306,12 +319,45 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     <>
       <LoadingModal showLoadingModal={deleteWorkoutMutation.isLoading} />
       <HStack spacing={4}>
+        <Menu closeOnSelect={true}>
+          <MenuButton
+            rightIcon={<ChevronDownIcon />}
+            size="xs"
+            as={Button}
+            colorScheme="gray"
+            rounded="sm"
+            py={1}>
+            Summary
+          </MenuButton>
+          <MenuList minWidth="240px">
+            <MenuItem
+              onClick={() => {
+                toggleGroupBy('startTime');
+                // We're toggling groupBy 'on', so make sure to sort by startTime column as well
+                if (!isGroupByWeek) {
+                  setSortBy([
+                    ...state.sortBy,
+                    { id: 'startTime', desc: false },
+                  ]);
+                }
+              }}>
+              {isGroupByWeek ? 'Hide' : 'Show'} Weekly Summary
+            </MenuItem>
+            <MenuItem onClick={() => toggleAllRowsExpanded(true)}>
+              Expand All
+            </MenuItem>
+            <MenuItem onClick={() => toggleAllRowsExpanded(false)}>
+              Collapse All
+            </MenuItem>
+          </MenuList>
+        </Menu>
+
         <Menu closeOnSelect={false}>
           <MenuButton
             rightIcon={<ChevronDownIcon />}
             size="xs"
             as={Button}
-            colorScheme="brand"
+            colorScheme="gray"
             rounded="sm"
             py={1}>
             Columns
@@ -336,7 +382,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
             rightIcon={<ChevronDownIcon />}
             size="xs"
             as={Button}
-            colorScheme="secondary"
+            colorScheme="gray"
             rounded="sm"
             py={1}>
             Filters
