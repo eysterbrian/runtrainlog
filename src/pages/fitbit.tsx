@@ -15,8 +15,6 @@ import {
 } from '@chakra-ui/react';
 import {
   fetchFitbitActivities,
-  fitbitActivitiesSchema,
-  TFitbitActivities,
   TFitbitActivity,
 } from 'lib/queries/fetchFitbitActivities';
 import { useFitbitTokenQuery } from 'lib/queries/fetchFitbitToken';
@@ -36,19 +34,6 @@ const FitbitPage: ComponentWithAuth = () => {
     }
   );
 
-  /**
-   * Parse the data from the API
-   */
-  let fitbitActivities: TFitbitActivities | null = null;
-  try {
-    if (fitbitWorkoutsQuery.data && fitbitWorkoutsQuery.isSuccess) {
-      // TODO: Should this get moved into the fetch method called by react-query?
-      fitbitActivities = fitbitActivitiesSchema.parse(fitbitWorkoutsQuery.data);
-    }
-  } catch (err) {
-    console.log(err);
-  }
-
   return (
     <>
       <Head>
@@ -59,11 +44,11 @@ const FitbitPage: ComponentWithAuth = () => {
         <Loading />
       ) : (
         <Box py={6} px={4}>
-          {fitbitActivities ? (
+          {fitbitWorkoutsQuery.data && (
             <>
               <Heading as="h2">Parsed activities</Heading>
               <FitbitWorkoutsTable
-                fitbitActivities={fitbitActivities.activities}
+                fitbitActivities={fitbitWorkoutsQuery.data.activities}
               />
               <Heading as="h3" fontSize="xl" my="6">
                 Raw activities API
@@ -71,11 +56,6 @@ const FitbitPage: ComponentWithAuth = () => {
               <Text as="pre" fontSize="xs">
                 {JSON.stringify(fitbitWorkoutsQuery.data, null, 3)}
               </Text>
-            </>
-          ) : (
-            <>
-              <Heading>Raw API Response</Heading>
-              <pre>{JSON.stringify(fitbitWorkoutsQuery.data, null, 3)}</pre>
             </>
           )}
         </Box>

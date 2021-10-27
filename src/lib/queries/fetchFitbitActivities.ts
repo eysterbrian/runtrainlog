@@ -35,8 +35,17 @@ export const fetchFitbitActivities = async (
   if (!res.ok) {
     throw new Error('Network response error in fetchWorkouts');
   }
-  const data = await res.json();
-  return data;
+
+  try {
+    const data = await res.json();
+
+    // Parse the raw API data into a typesafe object
+    const fitbitActivities = fitbitActivitiesSchema.parse(data);
+    return fitbitActivities;
+  } catch (err) {
+    console.log(err);
+    throw new Error('Fitbit activities data is invalid');
+  }
 };
 
 /**
@@ -61,5 +70,10 @@ export const fitbitActivitiesSchema = z.object({
     })
   ),
 });
-export type TFitbitActivities = z.infer<typeof fitbitActivitiesSchema>;
-export type TFitbitActivity = TFitbitActivities['activities'][number];
+
+/**
+ * Type for an individual activity from the Fitbit API
+ */
+export type TFitbitActivity = z.infer<
+  typeof fitbitActivitiesSchema
+>['activities'][number];

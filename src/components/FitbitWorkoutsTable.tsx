@@ -1,7 +1,16 @@
 import React from 'react';
 import { useTable, Column, Row, useSortBy } from 'react-table';
 import { Workout, WorkoutModality } from '@prisma/client';
-import { Table, Thead, Tbody, Tr, Th, Td, Badge, chakra } from '@chakra-ui/react';
+import {
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Badge,
+  chakra,
+} from '@chakra-ui/react';
 import { TFitbitActivity } from 'lib/queries/fetchFitbitActivities';
 import { format, parseISO } from 'date-fns';
 import { modalityFromFitbitActivity } from 'lib/utils/fitbitUtils';
@@ -16,44 +25,15 @@ type Props = {
 };
 
 /**
- * We'll convert the raw API data into this internal type
- */
-type TFitbitWorkout = {
-  startTime: string;
-  modality: WorkoutModality;
-  distance: number | undefined;
-  elevation: number;
-  pace: string | undefined;
-  heartRate: number;
-};
-
-/**
  * Displays table view of the given workouts
  * @param workouts Array of workouts
  * @returns
  */
 export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
   /**
-   * Convert the raw API data into more usable format
-   */
-  // TODO: Should we just do all this conversion in the cell render functions?
-  const fitbitWorkouts = React.useMemo<TFitbitWorkout[]>(
-    () =>
-      fitbitActivities.map((activity) => ({
-        startTime: activity.startTime,
-        modality: modalityFromFitbitActivity(activity.activityName),
-        distance: activity?.distance,
-        elevation: activity.elevationGain,
-        pace: activity.speed ? getMphToMinutes(activity.speed) : undefined,
-        heartRate: activity.averageHeartRate,
-      })),
-    [fitbitActivities]
-  );
-
-  /**
    * Define the columns for the table
    */
-  const columns: Array<Column<TFitbitWorkout>> = React.useMemo(
+  const columns: Array<Column<TFitbitActivity>> = React.useMemo(
     () => [
       {
         Header: 'Date',
@@ -70,13 +50,13 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
       },
       {
         Header: 'Modality',
-        accessor: 'modality',
+        accessor: 'activityName',
         Cell: ({ value }) => {
-          if (!value) return 'Unknown';
-          const colorScheme = value === 'RUN' ? 'green' : 'yellow';
+          const modality = modalityFromFitbitActivity(value);
+          const colorScheme = modality === 'RUN' ? 'green' : 'yellow';
           return (
             <Badge variant="solid" colorScheme={colorScheme}>
-              {value}
+              {modality}
             </Badge>
           );
         },
@@ -92,7 +72,7 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
       },
       {
         Header: 'Elevation (feet)',
-        accessor: 'elevation',
+        accessor: 'elevationGain',
         isNumeric: true,
         Cell: ({ value }) =>
           value
@@ -101,12 +81,13 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
       },
       {
         Header: 'Pace',
-        accessor: 'pace',
+        accessor: 'speed',
         isNumeric: true,
+        Cell: ({ value }) => (value ? getMphToMinutes(value) : ''),
       },
       {
         Header: 'Avg Heart Rate',
-        accessor: 'heartRate',
+        accessor: 'averageHeartRate',
         isNumeric: true,
       },
     ],
@@ -114,10 +95,13 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
   );
 
   const { getTableBodyProps, getTableProps, headerGroups, rows, prepareRow } =
-    useTable({
-      columns,
-      data: fitbitWorkouts,
-    }, useSortBy);
+    useTable(
+      {
+        columns,
+        data: fitbitActivities,
+      },
+      useSortBy
+    );
 
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
@@ -127,18 +111,19 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
         {headerGroups.map((headerGroup) => (
           <Tr {...headerGroup.getHeaderGroupProps()}>
             {headerGroup.headers.map((column) => (
-              <Th {...column.getHeaderProps(column.getSortByToggleProps())} isNumeric={column.isNumeric}>
+              <Th
+                {...column.getHeaderProps(column.getSortByToggleProps())}
+                isNumeric={column.isNumeric}>
                 {column.render('Header')}
                 <chakra.span pl="4">
-                    {column.isSorted ? (
-                      column.isSortedDesc ? (
-                        <TriangleDownIcon aria-label="sorted descending" />
-                      ) : (
-                        <TriangleUpIcon aria-label="sorted ascending" />
-                      )
-                    ) : null}
-                  </chakra.span>
-
+                  {column.isSorted ? (
+                    column.isSortedDesc ? (
+                      <TriangleDownIcon aria-label="sorted descending" />
+                    ) : (
+                      <TriangleUpIcon aria-label="sorted ascending" />
+                    )
+                  ) : null}
+                </chakra.span>
               </Th>
             ))}
           </Tr>
