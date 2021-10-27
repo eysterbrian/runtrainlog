@@ -57,7 +57,7 @@ export const fitbitActivitiesSchema = z.object({
       startTime:
         // zod will reject an ISO **string** using its built-in z.date() fn, so
         // we manually check whether the string version of a date is valid
-        z.union([z.date(), z.string().refine((val) => isValid(parseISO(val)))]),
+        z.string().refine((val) => isValid(parseISO(val))),
     })
   ),
 });

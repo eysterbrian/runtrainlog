@@ -28,6 +28,8 @@ import {
   AiFillHome,
   AiOutlineMenu,
 } from 'react-icons/ai';
+
+import { SiFitbit } from 'react-icons/si';
 import { MdRunCircle } from 'react-icons/md';
 import { BsPlus } from 'react-icons/bs';
 import React from 'react';
@@ -90,6 +92,11 @@ const MobileNav: React.VFC<{ showMobileNav: UseDisclosureReturn }> = ({
         <Button w="full" variant="ghost" leftIcon={<AiFillCalendar />}>
           This Week
         </Button>
+        <NextLink href="/fitbit" passHref>
+          <Button w="full" variant="ghost" leftIcon={<SiFitbit />}>
+            Fitbit Import
+          </Button>
+        </NextLink>
       </VStack>
     </Box>
   );
@@ -152,9 +159,18 @@ const HeaderNav: React.VFC = () => {
                   size="sm">
                   My Plan
                 </Button>
-                <Button variant="ghost" leftIcon={<AiFillCalendar />} size="sm">
+                {/* <Button variant="ghost" leftIcon={<AiFillCalendar />} size="sm">
                   This Week
-                </Button>
+                </Button> */}
+                <NextLink href="/fitbit" passHref>
+                  <Button
+                    as="a"
+                    variant="ghost"
+                    leftIcon={<SiFitbit />}
+                    size="sm">
+                    Fitbit Import
+                  </Button>
+                </NextLink>
               </HStack>
             )}
           </HStack>
