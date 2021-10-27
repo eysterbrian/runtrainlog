@@ -14,7 +14,7 @@ import {
 import { TFitbitActivity } from 'lib/queries/fetchFitbitActivities';
 import { format, parseISO } from 'date-fns';
 import { modalityFromFitbitActivity } from 'lib/utils/fitbitUtils';
-import { getMphToMinutes } from 'lib/utils/units';
+import { formatDurationFromMs, getMphToMinutes } from 'lib/utils/units';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 
 /**
@@ -89,6 +89,12 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
         Header: 'Avg Heart Rate',
         accessor: 'averageHeartRate',
         isNumeric: true,
+      },
+      {
+        Header: 'Duration',
+        accessor: 'activeDuration',
+        isNumeric: true,
+        Cell: ({ value }) => formatDurationFromMs(value),
       },
     ],
     []

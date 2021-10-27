@@ -62,6 +62,7 @@ export const fitbitActivitiesSchema = z.object({
       distance: z.number().optional(), // "Spinning" activity will omit this value
       elevationGain: z.number(),
       logId: z.number(),
+      activeDuration: z.number(),
       speed: z.number().optional(), // "Spinning" activity will omit this value
       startTime:
         // zod will reject an ISO **string** using its built-in z.date() fn, so

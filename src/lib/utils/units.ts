@@ -1,4 +1,4 @@
-import { format, addSeconds, getWeek, parseISO, isValid } from 'date-fns';
+import { format, addSeconds, getWeek, parseISO } from 'date-fns';
 
 /**
  * Converts mph to a pace in min:sec
@@ -8,6 +8,17 @@ import { format, addSeconds, getWeek, parseISO, isValid } from 'date-fns';
 export function getMphToMinutes(mph: number) {
   const paceMinutes = addSeconds(new Date(0), (60 / mph) * 60);
   return format(paceMinutes, 'm:ss');
+}
+
+/**
+ * Displays milliseconds value as m:ss
+ * @param milliseconds
+ * @returns mm:ss where mm can exceed 59 minutes
+ */
+export function formatDurationFromMs(milliseconds: number) {
+  const minutes = Math.floor(milliseconds / 1000 / 60);
+  const seconds = Math.round((milliseconds / 1000) % 60);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 /**
@@ -27,14 +38,3 @@ export function getWeekOfYearStr(dateArg: string | Date | null) {
     weekStartsOn: 1,
   }).toString();
 }
-
-// export function getDatesForWeek(week: string | number) {
-//   let weekNum: number;
-//   if (typeof week === 'number') {
-//     weekNum = week;
-//   } else {
-//     weekNum = parseInt(week);
-//   }
-//   const date = weekNum * 7
-//   return format(date, 'EEEE, M/d/y');
-// }
