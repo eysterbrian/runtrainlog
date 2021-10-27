@@ -1,11 +1,12 @@
 import React from 'react';
-import { useTable, Column, Row } from 'react-table';
+import { useTable, Column, Row, useSortBy } from 'react-table';
 import { Workout, WorkoutModality } from '@prisma/client';
-import { Table, Thead, Tbody, Tr, Th, Td, Badge } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, Badge, chakra } from '@chakra-ui/react';
 import { TFitbitActivity } from 'lib/queries/fetchFitbitActivities';
 import { format, parseISO } from 'date-fns';
 import { modalityFromFitbitActivity } from 'lib/utils/fitbitUtils';
 import { getMphToMinutes } from 'lib/utils/units';
+import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 
 /**
  * The parsed API data gets passed as props
@@ -116,7 +117,7 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
     useTable({
       columns,
       data: fitbitWorkouts,
-    });
+    }, useSortBy);
 
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
@@ -126,8 +127,18 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
         {headerGroups.map((headerGroup) => (
           <Tr {...headerGroup.getHeaderGroupProps()}>
             {headerGroup.headers.map((column) => (
-              <Th {...column.getHeaderProps()} isNumeric={column.isNumeric}>
+              <Th {...column.getHeaderProps(column.getSortByToggleProps())} isNumeric={column.isNumeric}>
                 {column.render('Header')}
+                <chakra.span pl="4">
+                    {column.isSorted ? (
+                      column.isSortedDesc ? (
+                        <TriangleDownIcon aria-label="sorted descending" />
+                      ) : (
+                        <TriangleUpIcon aria-label="sorted ascending" />
+                      )
+                    ) : null}
+                  </chakra.span>
+
               </Th>
             ))}
           </Tr>
