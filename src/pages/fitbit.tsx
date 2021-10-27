@@ -5,9 +5,16 @@ import { useQuery } from 'react-query';
 import Head from 'next/head';
 import { ComponentWithAuth } from 'types/auth';
 import { Loading } from 'components/Loading';
-import { Box, HStack, Button, useDisclosure } from '@chakra-ui/react';
-import { fetchFitbitActivities } from 'lib/queries/fetchFitbitActivities';
+import { Box, Heading, HStack, Button, useDisclosure } from '@chakra-ui/react';
+import {
+  fetchFitbitActivities,
+  fitbitActivitiesSchema,
+  TFitbitActivities,
+  TFitbitActivity,
+} from 'lib/queries/fetchFitbitActivities';
 import { useFitbitTokenQuery } from 'lib/queries/fetchFitbitToken';
+import { Workout } from '@prisma/client';
+import { modalityFromFitbitActivity } from 'lib/utils/fitbitUtils';
 
 const FitbitPage: ComponentWithAuth = () => {
   const [session] = useSession();
@@ -23,18 +30,49 @@ const FitbitPage: ComponentWithAuth = () => {
     }
   );
 
+  let fitbitActivities: TFitbitActivities | null = null;
+  try {
+    if (fitbitWorkoutsQuery.data && fitbitWorkoutsQuery.isSuccess) {
+      fitbitActivities = fitbitActivitiesSchema.parse(fitbitWorkoutsQuery.data);
+    }
+  } catch (err) {
+    console.log(err);
+  }
+
+  // const fitbitWorkouts = React.useMemo<TFitbitActivity[]>(
+  //   () =>
+  //     fitbitActivities.activities.map((activity) => ({
+  //       distance: activity.distance,
+  //       elevation: activity.elevationGain,
+  //       startTime: activity.startTime,
+  //       pace: activity.speed,
+  //       modality: modalityFromFitbitActivity(activity.activityName),
+  //       avgHeartRate:
+  //     })),
+  //   [fitbitWorkoutsQuery.data]
+  // );
+
   return (
     <>
       <Head>
-        <title>All workouts</title>
+        <title>Import Fitbit workouts</title>
       </Head>
 
       {!fitbitWorkoutsQuery.isSuccess ? (
         <Loading />
       ) : (
         <Box py={6} px={4}>
-          Fitbit Workouts
-          <pre>{JSON.stringify(fitbitWorkoutsQuery.data, null, 3)}</pre>
+          {fitbitActivities ? (
+            <>
+              <Heading>Parsed activities</Heading>
+              <pre>{JSON.stringify(fitbitActivities, null, 3)}</pre>
+            </>
+          ) : (
+            <>
+              <Heading>Raw API Response</Heading>
+              <pre>{JSON.stringify(fitbitWorkoutsQuery.data, null, 3)}</pre>
+            </>
+          )}
         </Box>
       )}
     </>
