@@ -47,8 +47,7 @@ const fitbitCallbackHandler: NextApiHandler = async (req, res) => {
     });
 
     console.log(fitbitUser);
-    // return res.status(200).send(JSON.stringify(accessToken));
-    res.redirect(307, '/');
+    res.redirect(307, '/fitbit');
   } catch (error) {
     console.log('Access token error', error);
     return res.status(500).json('Authentication failed');

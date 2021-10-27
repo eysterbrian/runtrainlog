@@ -5,7 +5,7 @@ import { useQuery } from 'react-query';
  *
  * @returns
  */
-const fetchFitbitToken = async (): Promise<{ accessToken: string }> => {
+export const fetchFitbitToken = async (): Promise<{ accessToken: string }> => {
   const res = await fetch(`${process.env.NEXT_PUBLIC_MY_API_URL}/fitbit/token`);
   if (!res.ok) {
     throw new Error('Network response error in fetchFitbitToken');

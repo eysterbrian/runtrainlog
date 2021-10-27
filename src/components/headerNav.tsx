@@ -22,7 +22,6 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import {
-  AiFillBell,
   AiFillCalendar,
   AiFillContainer,
   AiFillHome,
@@ -204,27 +203,6 @@ const HeaderNav: React.VFC = () => {
                       <MenuItem>
                         {session.user?.name || 'Unknown'}&apos;s Profile
                       </MenuItem>
-                      <MenuDivider />
-                      {!session.user.fitbitId ? (
-                        <>
-                          <MenuItem as="a" href="/api/fitbit/signin">
-                            Connect with Fitbit URL
-                          </MenuItem>
-                          {/* <MenuItem onClick={fitbitSignin}>
-                            Connect with fitbitSignin()
-                          </MenuItem> */}
-                        </>
-                      ) : (
-                        <MenuItem
-                          onClick={async () => {
-                            // HACK: This blocks the UI while we wait for the signout
-                            const data = await fitbitSignout();
-                            toast({ description: JSON.stringify(data) });
-                            // router.reload();
-                          }}>
-                          Disconnect from Fitbit
-                        </MenuItem>
-                      )}
                       <MenuDivider />
                       <MenuItem
                         onClick={() =>

@@ -84,7 +84,7 @@ model Workout {
 
   // Objective Workout Data
   startTime      DateTime?
-  activeDuration Int?
+  activeDuration Float?
   distance       Float?
   elevation      Float?
   pace           Float?
@@ -113,6 +113,8 @@ enum WorkoutModality {
   SPINNING
   ELLIPTICAL
   TREADMILL
+  SPORT
+  OTHER
 }
 
 enum WorkoutType {

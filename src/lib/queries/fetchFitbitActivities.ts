@@ -9,15 +9,21 @@ import { parseISO, isValid } from 'date-fns';
  * @param fitbitAccessToken
  * @returns
  */
-export const fetchFitbitActivities = async (
-  fitbitAccessToken: string | undefined
-) => {
+export const fetchFitbitActivities = async ({
+  fitbitAccessToken,
+  limit,
+  beforeDate,
+}: {
+  fitbitAccessToken: string | undefined;
+  limit: number;
+  beforeDate: string;
+}) => {
   if (!fitbitAccessToken) {
     throw new Error('Missing access token');
   }
   const queryParams = new URLSearchParams({
-    beforeDate: format(add(new Date(), { days: 1 }), 'yyyy-MM-dd'),
-    limit: '5',
+    beforeDate: format(add(new Date(beforeDate), { days: 2 }), 'yyyy-MM-dd'),
+    limit: limit.toString(),
     offset: '0',
     sort: 'desc',
   });
@@ -60,7 +66,7 @@ export const fitbitActivitiesSchema = z.object({
       activityName: z.string(),
       averageHeartRate: z.number(),
       distance: z.number().optional(), // "Spinning" activity will omit this value
-      elevationGain: z.number(),
+      elevationGain: z.number().optional(),
       logId: z.number(),
       activeDuration: z.number(),
       speed: z.number().optional(), // "Spinning" activity will omit this value

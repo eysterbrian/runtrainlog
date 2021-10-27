@@ -19,7 +19,7 @@ const fitbitAuthHandler: NextApiHandler = async (req, res) => {
    */
   if (req.method === 'GET') {
     // Get the user's fitbit token
-    const fitbitToken = await prisma.user.findFirst({
+    const data = await prisma.user.findFirst({
       where: {
         id: userId,
       },
@@ -28,9 +28,12 @@ const fitbitAuthHandler: NextApiHandler = async (req, res) => {
       },
     });
 
-    const jsonToken = fitbitToken?.fitbitAccount?.token;
-
-    return res.status(200).json({ connected: !!jsonToken });
+    return res
+      .status(200)
+      .json({
+        connected: !!data?.fitbitAccount,
+        fitbitId: data?.fitbitAccount?.id,
+      });
   } else if (req.method === 'DELETE') {
     /**
      *
