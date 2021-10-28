@@ -21,7 +21,7 @@ type Props = {
  * @param modalDisclosure to set whether modal is visible
  * @returns
  */
-export const AddWorkoutModal: React.FC<Props> = ({ modalDisclosure }) => {
+export const AddWorkoutDrawer: React.FC<Props> = ({ modalDisclosure }) => {
   const [submittingState, setSubmittingState] =
     React.useState<SubmittingState>('idle');
 

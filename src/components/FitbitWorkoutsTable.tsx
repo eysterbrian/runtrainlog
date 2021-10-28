@@ -9,13 +9,21 @@ import {
   Th,
   Td,
   Badge,
+  IconButton,
   chakra,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { TFitbitActivity } from 'lib/queries/fetchFitbitActivities';
 import { format, parseISO } from 'date-fns';
 import { modalityFromFitbitActivity } from 'lib/utils/fitbitUtils';
 import { formatDurationFromMs, getMphToMinutes } from 'lib/utils/units';
-import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
+import {
+  AddIcon,
+  CheckIcon,
+  TriangleDownIcon,
+  TriangleUpIcon,
+} from '@chakra-ui/icons';
+import { AddFitbitWorkoutModal } from './AddFitbitWorkoutModal';
 
 /**
  * The parsed API data gets passed as props
@@ -30,6 +38,10 @@ type Props = {
  * @returns
  */
 export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
+  const showAddWorkoutModal = useDisclosure();
+
+  const [importRow, setImportRow] = React.useState<TFitbitActivity>();
+
   /**
    * Define the columns for the table
    */
@@ -106,50 +118,80 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
         columns,
         data: fitbitActivities,
       },
-      useSortBy
+      useSortBy,
+      (hooks) => {
+        hooks.visibleColumns.push((columns) => [
+          {
+            Header: 'Import',
+            accessor: 'logId',
+            Cell: ({ row }) => (
+              <IconButton
+                aria-label="Delete row"
+                size="sm"
+                variant="outline"
+                icon={<AddIcon />}
+                onClick={() => {
+                  setImportRow(row.original);
+                  showAddWorkoutModal.onOpen();
+                }}
+              />
+            ),
+            disableSortBy: false,
+          },
+          ...columns,
+        ]);
+      }
     );
 
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
   return (
-    <Table {...getTableProps()}>
-      <Thead>
-        {headerGroups.map((headerGroup) => (
-          <Tr {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map((column) => (
-              <Th
-                {...column.getHeaderProps(column.getSortByToggleProps())}
-                isNumeric={column.isNumeric}>
-                {column.render('Header')}
-                <chakra.span pl="4">
-                  {column.isSorted ? (
-                    column.isSortedDesc ? (
-                      <TriangleDownIcon aria-label="sorted descending" />
-                    ) : (
-                      <TriangleUpIcon aria-label="sorted ascending" />
-                    )
-                  ) : null}
-                </chakra.span>
-              </Th>
-            ))}
-          </Tr>
-        ))}
-      </Thead>
-      <Tbody {...getTableBodyProps()}>
-        {rows.map((row) => {
-          prepareRow(row);
-          return (
-            <Tr {...row.getRowProps()}>
-              {row.cells.map((cell) => (
-                <Td {...cell.getCellProps()} isNumeric={cell.column.isNumeric}>
-                  {cell.render('Cell')}
-                </Td>
+    <>
+      <Table {...getTableProps()}>
+        <Thead>
+          {headerGroups.map((headerGroup) => (
+            <Tr {...headerGroup.getHeaderGroupProps()}>
+              {headerGroup.headers.map((column) => (
+                <Th
+                  {...column.getHeaderProps(column.getSortByToggleProps())}
+                  isNumeric={column.isNumeric}>
+                  {column.render('Header')}
+                  <chakra.span pl="4">
+                    {column.isSorted ? (
+                      column.isSortedDesc ? (
+                        <TriangleDownIcon aria-label="sorted descending" />
+                      ) : (
+                        <TriangleUpIcon aria-label="sorted ascending" />
+                      )
+                    ) : null}
+                  </chakra.span>
+                </Th>
               ))}
             </Tr>
-          );
-        })}
-      </Tbody>
-    </Table>
+          ))}
+        </Thead>
+        <Tbody {...getTableBodyProps()}>
+          {rows.map((row) => {
+            prepareRow(row);
+            return (
+              <Tr {...row.getRowProps()}>
+                {row.cells.map((cell) => (
+                  <Td
+                    {...cell.getCellProps()}
+                    isNumeric={cell.column.isNumeric}>
+                    {cell.render('Cell')}
+                  </Td>
+                ))}
+              </Tr>
+            );
+          })}
+        </Tbody>
+      </Table>
+      <AddFitbitWorkoutModal
+        fitbitActivity={importRow}
+        modalDisclosure={showAddWorkoutModal}
+      />
+    </>
   );
   /* eslint-enable react/jsx-key */
 };

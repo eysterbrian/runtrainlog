@@ -75,7 +75,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
           // The API returns the value as JSON which converts it to type string
           // So we force cast of the value to a string then parse it.
           const date: Date = parseISO(value as unknown as string);
-          return !value ? 'Unknown Date' : `${format(date, 'EEEE, M/d/y')}`;
+          return !value ? '?' : `${format(date, 'EEEE, M/d/y')}`;
         },
         Aggregated: ({ value }) => `Week #${getWeekOfYearStr(value)}`,
       },
@@ -133,6 +133,8 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         isNumeric: true,
         disableGroupBy: true,
         aggregate: 'sum',
+        Cell: ({ value }) =>
+          typeof value === 'number' ? Math.round(value * 100) / 100 : '-',
         Aggregated: ({ value }) => (
           <Tooltip
             label={`Total ${(Math.round(value * 100) / 100).toLocaleString(
@@ -148,6 +150,8 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         isNumeric: true,
         disableGroupBy: true,
         aggregate: 'sum',
+        Cell: ({ value }) =>
+          typeof value === 'number' ? Math.round(value) : '-',
         Aggregated: ({ value }) => (
           <Tooltip
             label={`Total ${(Math.round(value * 10) / 10).toLocaleString(
@@ -162,7 +166,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         accessor: 'pace',
         isNumeric: true,
         Cell: ({ value: mph }: { value: number }) =>
-          !mph ? 'Unknown' : getMphToMinutes(mph),
+          !mph ? '-' : getMphToMinutes(mph),
         disableGroupBy: true,
         aggregate: 'average',
         Aggregated: ({ value }) => (
@@ -269,7 +273,8 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       <IconButton
         aria-label="Delete row"
         icon={<DeleteIcon />}
-        variant={deleteWorkoutMutation.isLoading ? 'ghost' : 'solid'}
+        size="md"
+        variant="ghost"
         // BUG: button never gets disabled
         disabled={deleteWorkoutMutation.isLoading}
         onClick={() => {
@@ -282,15 +287,19 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   );
 
   /**
-   * If columnId is the 'startTime" column, then we group by the week number
-   * @param rows
-   * @param columnId
-   * @returns
+   * Extends the default groupBy function by grouping by week number of the
+   * columnId is the 'startTime' column.
+   *
+   * (see the implementation of defaultGroupByFn() in
+   * react-table/plugin-hooks/useGroupBy.js
+   * @param rows - all rows in the table data
+   * @param columnId - column to group rows by
+   * @returns record with group as key and array of grouped rows as value
    */
   type GroupByFnType = Exclude<TableOptions<Workout>['groupByFn'], undefined>;
   const groupByWeek = React.useCallback<GroupByFnType>((rows, columnId) => {
     return rows.reduce(
-      (prev: Record<number | string, Array<Row<Workout>>>, row, i) => {
+      (prev: Record<number | string, Array<Row<Workout>>>, row) => {
         let resKey: string | number = row.values[columnId];
         if (columnId === 'startTime') {
           resKey = !resKey ? 'Unknown' : getWeekOfYearStr(row.values[columnId]);
@@ -322,7 +331,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       groupByFn: groupByWeek,
       initialState: {
         groupBy: ['startTime'],
-        sortBy: [{ id: 'startTime', desc: false }],
+        sortBy: [{ id: 'startTime', desc: true }],
       },
     },
     useFilters,
@@ -336,6 +345,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
           accessor: 'id',
           Cell: ({ row }) => <DeleteIconButton row={row} />,
           disableGroupBy: true,
+          disableSortBy: true,
         },
         ...columns,
       ]);

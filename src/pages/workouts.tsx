@@ -9,7 +9,7 @@ import { TestTable } from 'components/TestTable';
 import { WorkoutsTable } from 'components/WorkoutsTable';
 import { Loading } from 'components/Loading';
 import { Box, HStack, Button, useDisclosure } from '@chakra-ui/react';
-import { AddWorkoutModal } from 'components/AddWorkoutModal';
+import { AddWorkoutDrawer } from 'components/AddWorkoutDrawer';
 
 const WorkoutsPage: ComponentWithAuth = () => {
   const [session] = useSession();
@@ -36,7 +36,7 @@ const WorkoutsPage: ComponentWithAuth = () => {
             </Button>
           </HStack> */}
           <WorkoutsTable workouts={workoutsQuery.data.workouts} />
-          <AddWorkoutModal modalDisclosure={addWorkoutModalDisclosure} />
+          <AddWorkoutDrawer modalDisclosure={addWorkoutModalDisclosure} />
         </Box>
       )}
     </>

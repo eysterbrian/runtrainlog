@@ -34,7 +34,7 @@ import { BsPlus } from 'react-icons/bs';
 import React from 'react';
 import { signIn, signOut, useSession } from 'next-auth/client';
 import NextLink from 'next/link';
-import { AddWorkoutModal } from './AddWorkoutModal';
+import { AddWorkoutDrawer } from './AddWorkoutDrawer';
 import router, { useRouter } from 'next/router';
 import { fitbitSignin, fitbitSignout } from 'lib/client/fitbitAuth';
 
@@ -151,6 +151,15 @@ const HeaderNav: React.VFC = () => {
                     Dashboard
                   </Button>
                 </NextLink>
+                <NextLink href="/workouts" passHref>
+                  <Button
+                    as="a"
+                    variant="ghost"
+                    leftIcon={<AiFillCalendar />}
+                    size="sm">
+                    Workouts
+                  </Button>
+                </NextLink>
                 <Button
                   variant="solid"
                   colorScheme="brand"
@@ -158,9 +167,6 @@ const HeaderNav: React.VFC = () => {
                   size="sm">
                   My Plan
                 </Button>
-                {/* <Button variant="ghost" leftIcon={<AiFillCalendar />} size="sm">
-                  This Week
-                </Button> */}
                 <NextLink href="/fitbit" passHref>
                   <Button
                     as="a"
@@ -232,7 +238,7 @@ const HeaderNav: React.VFC = () => {
           )}
         </Flex>
       </chakra.header>
-      <AddWorkoutModal modalDisclosure={addWorkoutModalDisclosure} />
+      <AddWorkoutDrawer modalDisclosure={addWorkoutModalDisclosure} />
     </React.Fragment>
   );
 };

@@ -1,3 +1,4 @@
+import React from 'react';
 import { WorkoutModality, WorkoutType } from '.prisma/client';
 import {
   Button,
@@ -13,6 +14,8 @@ import {
 } from '@chakra-ui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { fetchAddWorkout } from 'lib/queries/fetchAddWorkout';
+import { TFitbitActivity } from 'lib/queries/fetchFitbitActivities';
+import { modalityFromFitbitActivity } from 'lib/utils/fitbitUtils';
 import {
   newWorkoutSchema,
   TNewWorkoutSchema,
@@ -22,11 +25,13 @@ import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from 'react-query';
 import { IconRating } from './IconRating';
+import { parseISO, format } from 'date-fns';
 
 export type SubmittingState = 'idle' | 'isSubmitting' | 'isSubmitted';
 type Props = {
   showSubmitButton?: boolean;
   updateSubmitState?: (state: SubmittingState) => void;
+  fitbitActivity?: TFitbitActivity;
 };
 
 /**
@@ -38,7 +43,36 @@ type Props = {
 export const AddWorkoutForm: React.FC<Props> = ({
   updateSubmitState,
   showSubmitButton = true,
+  fitbitActivity,
 }) => {
+  //
+  // Default values for the form:
+  // If a fitbitActivity is provided, then define default values for the form based on
+  // this activity.
+  const fitbitValues = React.useMemo<Partial<TNewWorkoutSchema>>(
+    () =>
+      !fitbitActivity
+        ? {}
+        : {
+            description: 'Imported from fitbit',
+            modality: modalityFromFitbitActivity(fitbitActivity.activityName),
+            distance: fitbitActivity?.distance
+              ? Math.round(fitbitActivity.distance * 100) / 100
+              : 0,
+            startTime: format(parseISO(fitbitActivity.startTime), 'yyyy-MM-dd'),
+            workoutType:
+              modalityFromFitbitActivity(fitbitActivity.activityName) !== 'RUN'
+                ? 'CROSSTRAIN'
+                : 'BASE',
+            activeDuration: fitbitActivity.activeDuration,
+            elevation: fitbitActivity?.elevationGain,
+            fitbitLogId: fitbitActivity.logId,
+          },
+    [fitbitActivity]
+  );
+
+  console.log('default values: ', fitbitValues);
+
   const {
     handleSubmit,
     register,
@@ -46,13 +80,27 @@ export const AddWorkoutForm: React.FC<Props> = ({
     formState: { errors, isSubmitting, isSubmitted },
   } = useForm<TNewWorkoutSchema>({
     resolver: zodResolver(newWorkoutSchema),
+    defaultValues: fitbitValues,
   });
   const [session] = useSession();
   const queryClient = useQueryClient();
-  const mutation = useMutation(fetchAddWorkout, {
+  const addWorkoutMutation = useMutation(fetchAddWorkout, {
+    onError: (error) => {
+      console.log(error);
+      toast({
+        title: 'Error Adding Workout',
+        status: 'error',
+      });
+    },
     onSuccess: () => {
-      console.log('Invalidate queries from addWorkout mutation');
+      // console.log('🪓  Invalidating workouts after mutation success');
       queryClient.invalidateQueries(['workouts', session?.user?.id]);
+      // console.log('🍻  Toasting mutation success');
+      toast({
+        title: 'Workout Added',
+        description: 'Congrats on another workout',
+        status: 'success',
+      });
     },
   });
   const toast = useToast();
@@ -72,29 +120,15 @@ export const AddWorkoutForm: React.FC<Props> = ({
   }, [isSubmitting, isSubmitted, updateSubmitState]);
 
   function onSubmit(values: TNewWorkoutSchema) {
-    mutation.mutate(values, {
-      onError: (error) => {
-        console.log(error);
-        toast({
-          title: 'Error Adding Workout',
-          status: 'error',
-        });
-      },
-      onSuccess: () => {
-        toast({
-          title: 'Workout Added.',
-          description: 'Congrats on another good workout.',
-          status: 'success',
-          duration: 9000,
-          isClosable: true,
-        });
-      },
-    });
+    // console.log('💩 onSubmit - before mutation');
+    addWorkoutMutation.mutate(values);
+    // console.log('💩 onSubmit - after mutation');
   }
 
   return (
     <Center>
       <form onSubmit={handleSubmit(onSubmit)} id="addWorkoutForm">
+        <Input type="hidden" {...register('fitbitLogId')} />
         <SimpleGrid columns={2} spacing="4">
           <GridItem colSpan={2}>
             <FormControl isInvalid={!!errors.description}>
@@ -172,7 +206,6 @@ export const AddWorkoutForm: React.FC<Props> = ({
               <Controller
                 name="ratingEnergy"
                 control={control}
-                defaultValue={0}
                 render={({ field: { value, onChange } }) => (
                   <IconRating
                     value={value}
@@ -193,7 +226,6 @@ export const AddWorkoutForm: React.FC<Props> = ({
               <Controller
                 name="ratingDifficulty"
                 control={control}
-                defaultValue={0}
                 render={({ field: { value, onChange } }) => (
                   <IconRating
                     value={value}
@@ -214,7 +246,6 @@ export const AddWorkoutForm: React.FC<Props> = ({
               <Controller
                 name="ratingGeneral"
                 control={control}
-                defaultValue={0}
                 render={({ field: { value, onChange } }) => (
                   <IconRating
                     value={value}

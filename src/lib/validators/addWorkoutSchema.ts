@@ -10,12 +10,10 @@ export const newWorkoutSchema = z.object({
   distance: z.number({ invalid_type_error: 'A number is required' }).gt(0.1),
   activeDuration: z.number().gt(5).optional(),
   elevation: z.number().optional(),
-  // TODO: Need to parse string into a datetime
   startTime: z
     // zod's will reject an ISO string using its built-in z.date() fn, so
     // we manually check whether the string version of a date is valid
-    .union([z.date(), z.string().refine((val) => isValid(parseISO(val)))])
-    .optional(),
+    .union([z.date(), z.string().refine((val) => isValid(parseISO(val)))]),
 
   modality: z.nativeEnum(WorkoutModality, {
     errorMap: (issue, _ctx) => {
@@ -38,17 +36,24 @@ export const newWorkoutSchema = z.object({
     .number({ required_error: 'A rating is required' })
     .int()
     .gte(1, { message: 'A rating is required' })
-    .lte(5),
+    .lte(5)
+    .optional(),
   ratingDifficulty: z
     .number({ required_error: 'A rating is required' })
     .int()
     .gte(1, { message: 'A rating is required' })
-    .lte(5),
+    .lte(5)
+    .optional(),
   ratingGeneral: z
     .number({ required_error: 'A rating is required' })
     .int()
     .gte(1, { message: 'A rating is required' })
-    .lte(5),
+    .lte(5)
+    .optional(),
+  fitbitLogId: z
+    .number()
+    .min(1000, { message: 'Must be at least 1000' })
+    .optional(),
 });
 
 export type TNewWorkoutSchema = z.infer<typeof newWorkoutSchema>;
