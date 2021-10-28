@@ -15,7 +15,8 @@ const WorkoutsPage: ComponentWithAuth = () => {
   const [session] = useSession();
   const workoutsQuery = useQuery(
     ['workouts', session?.user?.id],
-    fetchWorkouts
+    fetchWorkouts,
+    { enabled: !!session?.user }
   );
 
   const addWorkoutModalDisclosure = useDisclosure();
