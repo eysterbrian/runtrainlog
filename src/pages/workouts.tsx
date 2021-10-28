@@ -36,7 +36,9 @@ const WorkoutsPage: ComponentWithAuth = () => {
               Add New Workout
             </Button>
           </HStack> */}
-          <WorkoutsTable workouts={workoutsQuery.data.workouts} />
+          {workoutsQuery?.data && (
+            <WorkoutsTable workouts={workoutsQuery.data.workouts} />
+          )}
           <AddWorkoutDrawer modalDisclosure={addWorkoutModalDisclosure} />
         </Box>
       )}

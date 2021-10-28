@@ -66,7 +66,7 @@ export const AddWorkoutForm: React.FC<Props> = ({
                 : 'BASE',
             activeDuration: fitbitActivity.activeDuration,
             elevation: fitbitActivity?.elevationGain,
-            fitbitLogId: fitbitActivity.logId,
+            fitbitLogId: fitbitActivity.logId.toString(),
           },
     [fitbitActivity]
   );

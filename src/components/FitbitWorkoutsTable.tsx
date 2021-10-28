@@ -128,8 +128,15 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
               <IconButton
                 aria-label="Delete row"
                 size="sm"
-                variant="outline"
-                icon={<AddIcon />}
+                variant={row.original?.isImported ? 'ghost' : 'outline'}
+                disabled={row.original?.isImported}
+                icon={
+                  row.original?.isImported ? (
+                    <CheckIcon color="green.500" />
+                  ) : (
+                    <AddIcon />
+                  )
+                }
                 onClick={() => {
                   setImportRow(row.original);
                   showAddWorkoutModal.onOpen();

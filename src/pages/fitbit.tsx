@@ -1,4 +1,3 @@
-// Displays listing of recent fitbit workouts for the current user
 import React from 'react';
 import { useSession } from 'next-auth/client';
 import { useQuery, useQueryClient } from 'react-query';
@@ -24,11 +23,18 @@ import { FitbitWorkoutsTable } from 'components/FitbitWorkoutsTable';
 import { fitbitSignout } from 'lib/client/fitbitAuth';
 import { fetchFitbitAccount } from 'lib/queries/fetchFitbitAccount';
 import { format } from 'date-fns';
+import fetchWorkouts from 'lib/queries/fetchWorkouts';
 
+/**
+ * Displays fitbit connect/disconnect, and table of recent fitbit "activities"
+ *
+ * @returns
+ */
 const FitbitPage: ComponentWithAuth = () => {
   const [session] = useSession();
   const queryClient = useQueryClient();
 
+  // State for the workout selector at top of the page
   const [numWorkouts, setNumWorkouts] = React.useState(10);
   const [importDate, setImportDate] = React.useState(
     format(new Date(), 'yyy-MM-dd')
@@ -52,7 +58,6 @@ const FitbitPage: ComponentWithAuth = () => {
     }
   );
 
-  // TODO: Smarter way to cache the random pages of activities
   const fitbitWorkoutsQuery = useQuery(
     ['fitbit', 'workouts', session?.user?.id, importDate, numWorkouts],
     () =>
@@ -66,6 +71,42 @@ const FitbitPage: ComponentWithAuth = () => {
       staleTime: 10 * 60 * 1000,
     }
   );
+
+  const workoutsQuery = useQuery(
+    ['workouts', session?.user?.id],
+    fetchWorkouts,
+    { enabled: !!session?.user }
+  );
+
+  /**
+   * Create the array of fitbit activities to display in the table,
+   * by adding the additional 'isImported' field which checks whether
+   * each activity has been imported into the app already
+   */
+  const fitbitActivities: TFitbitActivity[] | null = React.useMemo(() => {
+    if (!fitbitWorkoutsQuery.isSuccess || !workoutsQuery.isSuccess) {
+      return null;
+    }
+
+    // Create a set of all the fitbitLogId's that are referenced in the imported
+    // workouts
+    const fitbitLogIdSet = new Set<string>();
+    workoutsQuery.data.workouts.forEach((workout) => {
+      if (workout?.fitbitLogId) {
+        fitbitLogIdSet.add(workout.fitbitLogId);
+      }
+    });
+
+    return fitbitWorkoutsQuery.data.activities.map((activity) => ({
+      ...activity,
+      isImported: fitbitLogIdSet.has(activity.logId.toString()),
+    }));
+  }, [
+    fitbitWorkoutsQuery.data,
+    fitbitWorkoutsQuery.isSuccess,
+    workoutsQuery.data,
+    workoutsQuery.isSuccess,
+  ]);
 
   const toast = useToast();
 
@@ -133,17 +174,15 @@ const FitbitPage: ComponentWithAuth = () => {
             <Loading />
           ) : (
             <Box py={6} px={4}>
-              {fitbitWorkoutsQuery.data && (
+              {fitbitActivities && (
                 <>
                   <Heading as="h2">Fitbit Activities</Heading>
-                  <FitbitWorkoutsTable
-                    fitbitActivities={fitbitWorkoutsQuery.data.activities}
-                  />
+                  <FitbitWorkoutsTable fitbitActivities={fitbitActivities} />
                   <Heading as="h3" fontSize="xl" my="6">
-                    Raw activities API
+                    Data
                   </Heading>
                   <Text as="pre" fontSize="xs">
-                    {JSON.stringify(fitbitWorkoutsQuery.data, null, 3)}
+                    {JSON.stringify(fitbitActivities, null, 3)}
                   </Text>
                 </>
               )}

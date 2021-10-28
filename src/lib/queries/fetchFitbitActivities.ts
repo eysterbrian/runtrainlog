@@ -83,4 +83,11 @@ export const fitbitActivitiesSchema = z.object({
  */
 export type TFitbitActivity = z.infer<
   typeof fitbitActivitiesSchema
->['activities'][number];
+>['activities'][number] & {
+  // Add extra field to track whether this activity has been imported
+  // into our app.
+  //
+  // This field never comes from the API directly, so only specify it in
+  // this generated type rather than in the schema itself
+  isImported?: boolean;
+};

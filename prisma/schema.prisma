@@ -77,10 +77,10 @@ model FitbitAccount {
 }
 
 model Workout {
-  id          String @id @default(cuid())
-  fitbitLogId Int?
+  id          String  @id @default(cuid())
+  fitbitLogId String?
   userId      String
-  user        User   @relation(fields: [userId], references: [id])
+  user        User    @relation(fields: [userId], references: [id])
 
   // Objective Workout Data
   startTime      DateTime?

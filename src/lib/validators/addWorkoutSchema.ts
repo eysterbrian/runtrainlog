@@ -51,8 +51,8 @@ export const newWorkoutSchema = z.object({
     .lte(5)
     .optional(),
   fitbitLogId: z
-    .number()
-    .min(1000, { message: 'Must be at least 1000' })
+    .string()
+    .min(5, { message: 'Must be at least 5 digits' })
     .optional(),
 });
 
