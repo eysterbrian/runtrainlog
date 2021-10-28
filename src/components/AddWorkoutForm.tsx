@@ -25,7 +25,7 @@ import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from 'react-query';
 import { IconRating } from './IconRating';
-import { parseISO, format } from 'date-fns';
+import { parseISO, format, addSeconds } from 'date-fns';
 
 export type SubmittingState = 'idle' | 'isSubmitting' | 'isSubmitted';
 type Props = {
@@ -59,7 +59,10 @@ export const AddWorkoutForm: React.FC<Props> = ({
             distance: fitbitActivity?.distance
               ? Math.round(fitbitActivity.distance * 100) / 100
               : 0,
-            startTime: format(parseISO(fitbitActivity.startTime), 'yyyy-MM-dd'),
+            startTime: format(
+              parseISO(fitbitActivity.startTime),
+              "yyyy-MM-dd'T'HH:mm"
+            ),
             workoutType:
               modalityFromFitbitActivity(fitbitActivity.activityName) !== 'RUN'
                 ? 'CROSSTRAIN'
@@ -70,8 +73,6 @@ export const AddWorkoutForm: React.FC<Props> = ({
           },
     [fitbitActivity]
   );
-
-  console.log('default values: ', fitbitValues);
 
   const {
     handleSubmit,
@@ -143,11 +144,12 @@ export const AddWorkoutForm: React.FC<Props> = ({
               </FormErrorMessage>
             </FormControl>
           </GridItem>
-          <GridItem colSpan={1}>
+          <GridItem colSpan={2}>
             <FormControl isInvalid={!!errors.startTime}>
               <FormLabel>Date</FormLabel>
               <Input
-                type="date"
+                // type="datetime-local"
+                type="datetime-local"
                 {...register('startTime', { valueAsDate: true })}
               />
               <FormErrorMessage>
