@@ -56,7 +56,7 @@ export const AddWorkoutForm: React.FC<Props> = ({
         ? {}
         : {
             description: 'Imported from fitbit',
-            modality: modalityFromFitbitActivity(fitbitActivity.activityName),
+            modality: fitbitActivity.modality,
             distance: fitbitActivity?.distance
               ? Math.round(fitbitActivity.distance * 100) / 100
               : 0,
@@ -65,11 +65,10 @@ export const AddWorkoutForm: React.FC<Props> = ({
               "yyyy-MM-dd'T'HH:mm"
             ),
             workoutType:
-              modalityFromFitbitActivity(fitbitActivity.activityName) !== 'RUN'
-                ? 'CROSSTRAIN'
-                : 'BASE',
+              fitbitActivity.modality !== 'RUN' ? 'CROSSTRAIN' : 'BASE',
             activeDurationSeconds:
-              Math.round((fitbitActivity.activeDuration / 1000) * 100) / 100,
+              Math.round((fitbitActivity.activeDurationSeconds / 1000) * 100) /
+              100,
             elevation: fitbitActivity?.elevationGain
               ? Math.round(fitbitActivity?.elevationGain)
               : 0,

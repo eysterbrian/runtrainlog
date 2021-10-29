@@ -15,7 +15,7 @@ export function getMphToMinutesStr(mph: number) {
  * @param mph
  * @returns hh:mm string
  */
- export function getMphToMinutes(mph: number) {
+export function getMphToMinutes(mph: number) {
   return (60 / mph) * 60;
 }
 
@@ -24,9 +24,9 @@ export function getMphToMinutesStr(mph: number) {
  * @param milliseconds
  * @returns mm:ss where mm can exceed 59 minutes
  */
-export function formatDurationFromMs(milliseconds: number) {
-  const minutes = Math.floor(milliseconds / 1000 / 60);
-  const seconds = Math.round((milliseconds / 1000) % 60);
+export function formatDurationFromSeconds(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.round(totalSeconds % 60);
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
@@ -47,4 +47,3 @@ export function getWeekOfYearStr(dateArg: string | Date | null) {
     weekStartsOn: 1,
   }).toString();
 }
-

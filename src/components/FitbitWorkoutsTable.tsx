@@ -1,5 +1,13 @@
 import React from 'react';
-import { useTable, Column, Row, useSortBy } from 'react-table';
+import {
+  useTable,
+  Column,
+  Row,
+  useSortBy,
+  FilterTypes,
+  useFilters,
+  useAsyncDebounce,
+} from 'react-table';
 import { Workout, WorkoutModality } from '@prisma/client';
 import {
   Table,
@@ -10,13 +18,14 @@ import {
   Td,
   Badge,
   IconButton,
+  HStack,
+  Checkbox,
   chakra,
   useDisclosure,
 } from '@chakra-ui/react';
 import { TFitbitActivity } from 'lib/queries/fetchFitbitActivities';
 import { format, parseISO } from 'date-fns';
-import { modalityFromFitbitActivity } from 'lib/utils/fitbitUtils';
-import { formatDurationFromMs, getMphToMinutesStr } from 'lib/utils/units';
+import { formatDurationFromSeconds, getMphToMinutesStr } from 'lib/utils/units';
 import {
   AddIcon,
   CheckIcon,
@@ -43,6 +52,27 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
   const [importRow, setImportRow] = React.useState<TFitbitActivity>();
 
   /**
+   * Define custom filter types
+   */
+  const filterTypes: FilterTypes<TFitbitActivity> = React.useMemo(
+    () => ({
+      nonWorkouts: (
+        rows: Row<TFitbitActivity>[],
+        id: string[],
+        filterValue: string
+      ) => {
+        return rows.filter((row) => {
+          return (
+            row.original.modality !== 'OTHER' &&
+            row.original.activeDurationSeconds > 60
+          );
+        });
+      },
+    }),
+    []
+  );
+
+  /**
    * Define the columns for the table
    */
   const columns: Array<Column<TFitbitActivity>> = React.useMemo(
@@ -62,13 +92,12 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
       },
       {
         Header: 'Modality',
-        accessor: 'activityName',
+        accessor: 'modality',
         Cell: ({ value }) => {
-          const modality = modalityFromFitbitActivity(value);
-          const colorScheme = modality === 'RUN' ? 'green' : 'yellow';
+          const colorScheme = value === 'RUN' ? 'green' : 'yellow';
           return (
             <Badge variant="solid" colorScheme={colorScheme}>
-              {modality}
+              {value}
             </Badge>
           );
         },
@@ -104,56 +133,80 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
       },
       {
         Header: 'Duration',
-        accessor: 'activeDuration',
+        accessor: 'activeDurationSeconds',
         isNumeric: true,
-        Cell: ({ value }) => formatDurationFromMs(value),
+        filter: 'nonWorkouts',
+        Cell: ({ value }) => formatDurationFromSeconds(value),
       },
     ],
     []
   );
 
-  const { getTableBodyProps, getTableProps, headerGroups, rows, prepareRow } =
-    useTable(
-      {
-        columns,
-        data: fitbitActivities,
-      },
-      useSortBy,
-      (hooks) => {
-        hooks.visibleColumns.push((columns) => [
-          {
-            Header: 'Import',
-            accessor: 'logId',
-            Cell: ({ row }) => (
-              <IconButton
-                aria-label="Delete row"
-                size="sm"
-                variant={row.original?.isImported ? 'ghost' : 'outline'}
-                disabled={row.original?.isImported}
-                icon={
-                  row.original?.isImported ? (
-                    <CheckIcon color="green.500" />
-                  ) : (
-                    <AddIcon />
-                  )
-                }
-                onClick={() => {
-                  setImportRow(row.original);
-                  showAddWorkoutModal.onOpen();
-                }}
-              />
-            ),
-            disableSortBy: false,
-          },
-          ...columns,
-        ]);
-      }
-    );
+  const {
+    getTableBodyProps,
+    getTableProps,
+    headerGroups,
+    rows,
+    prepareRow,
+    state: { filters },
+    setAllFilters,
+  } = useTable(
+    {
+      columns,
+      data: fitbitActivities,
+      filterTypes,
+    },
+    useFilters,
+    useSortBy,
+    (hooks) => {
+      hooks.visibleColumns.push((columns) => [
+        {
+          Header: 'Import',
+          accessor: 'logId',
+          Cell: ({ row }) => (
+            <IconButton
+              aria-label="Delete row"
+              size="sm"
+              variant={row.original?.isImported ? 'ghost' : 'outline'}
+              disabled={row.original?.isImported}
+              icon={
+                row.original?.isImported ? (
+                  <CheckIcon color="green.500" />
+                ) : (
+                  <AddIcon />
+                )
+              }
+              onClick={() => {
+                setImportRow(row.original);
+                showAddWorkoutModal.onOpen();
+              }}
+            />
+          ),
+          disableSortBy: false,
+        },
+        ...columns,
+      ]);
+    }
+  );
 
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
   return (
     <>
+      <HStack justifyContent="end">
+        <Checkbox
+          fontSize="xs"
+          defaultIsChecked={!!filters.length}
+          onChange={(evt) => {
+            setAllFilters(
+              evt.target.checked
+                ? [{ id: 'activeDurationSeconds', value: '' }]
+                : []
+            );
+          }}>
+          Hide non-workouts
+        </Checkbox>
+      </HStack>
       <Table {...getTableProps()}>
         <Thead>
           {headerGroups.map((headerGroup) => (

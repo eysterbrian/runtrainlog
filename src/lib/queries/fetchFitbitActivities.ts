@@ -3,6 +3,7 @@ import { useQuery } from 'react-query';
 import { format, add } from 'date-fns';
 import { z } from 'zod';
 import { parseISO, isValid } from 'date-fns';
+import { modalityFromFitbitActivity } from 'lib/utils/fitbitUtils';
 
 /**
  *
@@ -60,21 +61,33 @@ export const fetchFitbitActivities = async ({
  * Zod's default behavior is to strip all unknown properties from the object. So only
  * the properties defined in this schema will be available in TS.
  */
+// TODO: convert all these values to our internal data types right now
 export const fitbitActivitiesSchema = z.object({
   activities: z.array(
-    z.object({
-      activityName: z.string(),
-      averageHeartRate: z.number(),
-      distance: z.number().optional(), // "Spinning" activity will omit this value
-      elevationGain: z.number().optional(),
-      logId: z.number(),
-      activeDuration: z.number(),
-      speed: z.number().optional(), // "Spinning" activity will omit this value
-      startTime:
-        // zod will reject an ISO **string** using its built-in z.date() fn, so
-        // we manually check whether the string version of a date is valid
-        z.string().refine((val) => isValid(parseISO(val))),
-    })
+    z
+      .object({
+        activityName: z.string(), // This will be transformed to 'modality'
+        averageHeartRate: z.number(),
+        distance: z.number().optional(), // "Spinning" activity will omit this value
+        elevationGain: z.number().optional(),
+        logId: z.number(), // TODO: transform this to a string
+        activeDuration: z.number(), // API value is in milliseconds
+
+        // TODO: Convert this to pace (from current MPH units)
+        speed: z.number().optional(), // "Spinning" activity will omit this value
+        startTime:
+          // zod will reject an ISO **string** using its built-in z.date() fn, so
+          // we manually check whether the string version of a date is valid
+          z.string().refine((val) => isValid(parseISO(val))),
+      })
+      // Remove the activeDuration field and replace with activeDurationSeconds
+      .transform(({ activeDuration, activityName, ...vals }) => ({
+        ...vals,
+        activeDurationSeconds:
+          // API value is in milliseconds, so convert it to seconds
+          activeDuration / 1000,
+        modality: modalityFromFitbitActivity(activityName),
+      }))
   ),
 });
 
