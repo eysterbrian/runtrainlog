@@ -7,6 +7,7 @@ import {
   Th,
   Td,
   HStack,
+  Box,
   Badge,
   chakra,
   Menu,
@@ -49,7 +50,7 @@ import { fetchDeleteWorkout } from 'lib/queries/fetchDeleteWorkout';
 import { LoadingModal } from 'components/Loading';
 import { DeleteWorkoutConfirm } from './DeleteWorkoutAlert';
 import { getRatingsIconComponent } from './IconRatingDisplay';
-import { getMphToMinutes, getWeekOfYearStr } from 'lib/utils/units';
+import { getMphToMinutesStr, getWeekOfYearStr } from 'lib/utils/units';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 type Props = {
@@ -163,15 +164,15 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       },
       {
         Header: 'Pace',
-        accessor: 'pace',
+        accessor: 'paceMinPerMile',
         isNumeric: true,
         Cell: ({ value: mph }: { value: number }) =>
-          !mph ? '-' : getMphToMinutes(mph),
+          !mph ? '-' : getMphToMinutesStr(mph),
         disableGroupBy: true,
         aggregate: 'average',
         Aggregated: ({ value }) => (
-          <Tooltip label={`Avg ${getMphToMinutes(value)}`}>
-            <Text>{getMphToMinutes(value)}</Text>
+          <Tooltip label={`Avg ${getMphToMinutesStr(value)}`}>
+            <Text>{getMphToMinutesStr(value)}</Text>
           </Tooltip>
         ),
       },
@@ -375,91 +376,98 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     <>
       <LoadingModal showLoadingModal={deleteWorkoutMutation.isLoading} />
       <HStack spacing={4}>
-        <Menu closeOnSelect={true}>
-          <MenuButton
-            rightIcon={<ChevronDownIcon />}
-            size="xs"
-            as={Button}
-            colorScheme="gray"
-            rounded="sm"
-            py={1}>
-            Summary
-          </MenuButton>
-          <MenuList minWidth="240px">
-            <MenuItem command="^E" onClick={toggleSummaries}>
-              {isGroupByWeek ? 'Hide' : 'Show'} Weekly Summary
-            </MenuItem>
-            <MenuItem command="⌘E" onClick={() => toggleAllRowsExpanded(true)}>
-              Expand All
-            </MenuItem>
-            <MenuItem
-              command="⇧⌘E"
-              onClick={() => toggleAllRowsExpanded(false)}>
-              Collapse All
-            </MenuItem>
-          </MenuList>
-        </Menu>
+        <Box>
+          <Menu closeOnSelect={true}>
+            <MenuButton
+              rightIcon={<ChevronDownIcon />}
+              size="xs"
+              as={Button}
+              colorScheme="gray"
+              rounded="sm"
+              py={1}>
+              Summary
+            </MenuButton>
+            <MenuList minWidth="240px">
+              <MenuItem command="^E" onClick={toggleSummaries}>
+                {isGroupByWeek ? 'Hide' : 'Show'} Weekly Summary
+              </MenuItem>
+              <MenuItem
+                command="⌘E"
+                onClick={() => toggleAllRowsExpanded(true)}>
+                Expand All
+              </MenuItem>
+              <MenuItem
+                command="⇧⌘E"
+                onClick={() => toggleAllRowsExpanded(false)}>
+                Collapse All
+              </MenuItem>
+            </MenuList>
+          </Menu>
+        </Box>
 
-        <Menu closeOnSelect={false}>
-          <MenuButton
-            rightIcon={<ChevronDownIcon />}
-            size="xs"
-            as={Button}
-            colorScheme="gray"
-            rounded="sm"
-            py={1}>
-            Columns
-          </MenuButton>
-          <MenuList minWidth="240px">
-            {allColumns.map((column) => {
-              return (
-                <MenuItemOption
-                  key={column.id}
-                  value={column.id}
-                  isChecked={column.isVisible}
-                  onClick={() => column.toggleHidden()}>
-                  {column.id === 'modifyRow' ? 'Delete' : column.Header}
+        <Box>
+          <Menu closeOnSelect={false}>
+            <MenuButton
+              rightIcon={<ChevronDownIcon />}
+              size="xs"
+              as={Button}
+              colorScheme="gray"
+              rounded="sm"
+              py={1}>
+              Columns
+            </MenuButton>
+            <MenuList minWidth="240px">
+              {allColumns.map((column) => {
+                return (
+                  <MenuItemOption
+                    key={column.id}
+                    value={column.id}
+                    isChecked={column.isVisible}
+                    onClick={() => column.toggleHidden()}>
+                    {column.id === 'modifyRow' ? 'Delete' : column.Header}
+                  </MenuItemOption>
+                );
+              })}
+            </MenuList>
+          </Menu>
+        </Box>
+        <Box>
+          <Menu closeOnSelect={false}>
+            <MenuButton
+              rightIcon={<ChevronDownIcon />}
+              size="xs"
+              as={Button}
+              colorScheme="gray"
+              rounded="sm"
+              py={1}>
+              Filters
+            </MenuButton>
+            <MenuList minWidth="240px">
+              <MenuOptionGroup defaultValue="all" type="radio">
+                <MenuItemOption value="all" onClick={() => setAllFilters([])}>
+                  All Workouts
                 </MenuItemOption>
-              );
-            })}
-          </MenuList>
-        </Menu>
-
-        <Menu closeOnSelect={false}>
-          <MenuButton
-            rightIcon={<ChevronDownIcon />}
-            size="xs"
-            as={Button}
-            colorScheme="gray"
-            rounded="sm"
-            py={1}>
-            Filters
-          </MenuButton>
-          <MenuList minWidth="240px">
-            <MenuOptionGroup defaultValue="all" type="radio">
-              <MenuItemOption value="all" onClick={() => setAllFilters([])}>
-                All Workouts
-              </MenuItemOption>
-              <MenuItemOption
-                value="onlyRuns"
-                onClick={() =>
-                  setAllFilters([{ id: 'modality', value: 'RUN' }])
-                }>
-                All Runs
-              </MenuItemOption>
-              <MenuItemOption
-                value="onlyLongRuns"
-                onClick={() =>
-                  setAllFilters([
-                    { id: 'modality', value: 'RUN' },
-                    { id: 'workoutType', value: 'LONG' },
-                  ])
-                }>
-                Long Runs
-              </MenuItemOption>
-            </MenuOptionGroup>
-          </MenuList>
-        </Menu>
+                <MenuItemOption
+                  value="onlyRuns"
+                  onClick={() =>
+                    setAllFilters([{ id: 'modality', value: 'RUN' }])
+                  }>
+                  All Runs
+                </MenuItemOption>
+                <MenuItemOption
+                  value="onlyLongRuns"
+                  onClick={() =>
+                    setAllFilters([
+                      { id: 'modality', value: 'RUN' },
+                      { id: 'workoutType', value: 'LONG' },
+                    ])
+                  }>
+                  Long Runs
+                </MenuItemOption>
+              </MenuOptionGroup>
+            </MenuList>
+          </Menu>
+        </Box>
       </HStack>
 
       <Table {...getTableProps()}>

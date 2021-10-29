@@ -83,12 +83,12 @@ model Workout {
   user        User    @relation(fields: [userId], references: [id])
 
   // Objective Workout Data
-  startTime      DateTime?
-  activeDuration Float?
-  distance       Float?
-  elevation      Float?
-  pace           Float?
-  avgHeartRate   Int?
+  startTime             DateTime?
+  activeDurationSeconds Float?
+  distance              Float?
+  elevation             Float?
+  paceMinPerMile        Float?
+  avgHeartRate          Int?
 
   // Descriptions
   modality          WorkoutModality?

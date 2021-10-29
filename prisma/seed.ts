@@ -46,13 +46,13 @@ async function main() {
     ]) as WorkoutModality;
     return {
       startTime: faker.date.recent(21), // Dates in the past 3 weeks
-      activeDuration: faker.datatype.number({
-        min: 60 * 20, // duraction is in seconds, so this is from 20 minutes
-        max: 60 * 90, // to 90 minutes
+      activeDurationSeconds: faker.datatype.number({
+        min: 20 * 60,
+        max: 70 * 60,
       }),
       distance: faker.datatype.float({ min: 1, max: 20 }),
       elevation: faker.datatype.float({ min: 50, max: 1500 }),
-      pace: faker.datatype.float({ min: 60 / 13, max: 60 / 6 }),
+      paceMinPerMile: faker.datatype.float({ min: 60 / 13, max: 60 / 6 }),
       avgHeartRate: faker.datatype.number({ min: 100, max: 130 }),
       modality,
       workoutType:

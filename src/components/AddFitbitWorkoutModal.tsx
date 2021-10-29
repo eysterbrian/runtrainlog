@@ -51,7 +51,7 @@ export const AddFitbitWorkoutModal: React.FC<Props> = ({
     <>
       <Modal
         blockScrollOnMount={false}
-        size="md"
+        size="lg"
         isOpen={modalDisclosure.isOpen}
         onClose={modalDisclosure.onClose}>
         <ModalOverlay />

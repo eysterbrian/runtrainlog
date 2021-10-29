@@ -5,9 +5,18 @@ import { format, addSeconds, getWeek, parseISO } from 'date-fns';
  * @param mph
  * @returns hh:mm string
  */
-export function getMphToMinutes(mph: number) {
+export function getMphToMinutesStr(mph: number) {
   const paceMinutes = addSeconds(new Date(0), (60 / mph) * 60);
   return format(paceMinutes, 'm:ss');
+}
+
+/**
+ * Converts mph to a pace in min:sec
+ * @param mph
+ * @returns hh:mm string
+ */
+ export function getMphToMinutes(mph: number) {
+  return (60 / mph) * 60;
 }
 
 /**
@@ -38,3 +47,4 @@ export function getWeekOfYearStr(dateArg: string | Date | null) {
     weekStartsOn: 1,
   }).toString();
 }
+

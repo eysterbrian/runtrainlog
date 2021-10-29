@@ -26,6 +26,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from 'react-query';
 import { IconRating } from './IconRating';
 import { parseISO, format, addSeconds } from 'date-fns';
+import { toTitleCase } from 'lib/utils/stringUtils';
 
 export type SubmittingState = 'idle' | 'isSubmitting' | 'isSubmitted';
 type Props = {
@@ -67,9 +68,16 @@ export const AddWorkoutForm: React.FC<Props> = ({
               modalityFromFitbitActivity(fitbitActivity.activityName) !== 'RUN'
                 ? 'CROSSTRAIN'
                 : 'BASE',
-            activeDuration: fitbitActivity.activeDuration,
-            elevation: fitbitActivity?.elevationGain,
+            activeDurationSeconds:
+              Math.round((fitbitActivity.activeDuration / 1000) * 100) / 100,
+            elevation: fitbitActivity?.elevationGain
+              ? Math.round(fitbitActivity?.elevationGain)
+              : 0,
             fitbitLogId: fitbitActivity.logId.toString(),
+            paceMinPerMile: fitbitActivity?.speed
+              ? Math.round((60 / fitbitActivity.speed) * 100) / 100
+              : 0,
+            avgHeartRate: fitbitActivity.averageHeartRate,
           },
     [fitbitActivity]
   );
@@ -158,26 +166,13 @@ export const AddWorkoutForm: React.FC<Props> = ({
             </FormControl>
           </GridItem>
           <GridItem colSpan={1}>
-            <FormControl isInvalid={!!errors.distance}>
-              <FormLabel>Distance</FormLabel>
-              <Input
-                type="number"
-                step="0.01"
-                {...register('distance', { valueAsNumber: true })}
-              />
-              <FormErrorMessage>
-                {errors.distance && errors.distance.message}
-              </FormErrorMessage>
-            </FormControl>
-          </GridItem>
-          <GridItem colSpan={1}>
             <FormControl isInvalid={!!errors.modality}>
               <FormLabel>Modality</FormLabel>
               <Select {...register('modality')}>
                 <option value=""></option>
                 {Object.keys(WorkoutModality).map((modality) => (
                   <option key={modality} value={modality}>
-                    {modality}
+                    {toTitleCase(modality)}
                   </option>
                 ))}
               </Select>
@@ -193,7 +188,7 @@ export const AddWorkoutForm: React.FC<Props> = ({
                 <option value=""></option>
                 {Object.keys(WorkoutType).map((workoutType) => (
                   <option key={workoutType} value={workoutType}>
-                    {workoutType}
+                    {toTitleCase(workoutType)}
                   </option>
                 ))}
               </Select>
@@ -202,9 +197,81 @@ export const AddWorkoutForm: React.FC<Props> = ({
               </FormErrorMessage>
             </FormControl>
           </GridItem>
+        </SimpleGrid>
+        <SimpleGrid columns={3} spacing={4} mt={8}>
+          <GridItem colSpan={1} alignSelf="end">
+            <FormControl isInvalid={!!errors.distance}>
+              <FormLabel>Distance (miles)</FormLabel>
+              <Input
+                type="number"
+                step="0.01"
+                {...register('distance', { valueAsNumber: true })}
+              />
+              <FormErrorMessage>
+                {errors.distance && errors.distance.message}
+              </FormErrorMessage>
+            </FormControl>
+          </GridItem>
+          <GridItem colSpan={1} alignSelf="end">
+            <FormControl isInvalid={!!errors.elevation}>
+              <FormLabel>Elevation (ft)</FormLabel>
+              <Input
+                type="number"
+                step="0.01"
+                {...register('elevation', { valueAsNumber: true })}
+              />
+              <FormErrorMessage>
+                {errors.elevation && errors.elevation.message}
+              </FormErrorMessage>
+            </FormControl>
+          </GridItem>
+          <GridItem colSpan={1} alignSelf="end">
+            <FormControl isInvalid={!!errors.activeDurationSeconds}>
+              <FormLabel>Duration</FormLabel>
+              <Input
+                type="number"
+                step="0.01"
+                {...register('activeDurationSeconds', { valueAsNumber: true })}
+              />
+              <FormErrorMessage>
+                {errors.activeDurationSeconds &&
+                  errors.activeDurationSeconds.message}
+              </FormErrorMessage>
+            </FormControl>
+          </GridItem>
+          <GridItem colSpan={1}>
+            <FormControl isInvalid={!!errors.paceMinPerMile}>
+              <FormLabel>Pace (min/mile)</FormLabel>
+              <Input
+                type="number"
+                step="0.01"
+                {...register('paceMinPerMile', { valueAsNumber: true })}
+              />
+              <FormErrorMessage>
+                {errors.paceMinPerMile && errors.paceMinPerMile.message}
+              </FormErrorMessage>
+            </FormControl>
+          </GridItem>
+          <GridItem colSpan={1}>
+            <FormControl isInvalid={!!errors.avgHeartRate}>
+              <FormLabel>Heart Rate (bpm)</FormLabel>
+              <Input
+                type="number"
+                step="0.01"
+                {...register('avgHeartRate', { valueAsNumber: true })}
+              />
+              <FormErrorMessage>
+                {errors.avgHeartRate && errors.avgHeartRate.message}
+              </FormErrorMessage>
+            </FormControl>
+          </GridItem>
+        </SimpleGrid>
+        <SimpleGrid mt={8} columns={2} spacing={4}>
           <GridItem colSpan={1}>
             <FormControl isInvalid={!!errors.ratingEnergy}>
-              <FormLabel>Energy</FormLabel>
+              <FormLabel textTransform="uppercase" color="gray.400">
+                Energy
+              </FormLabel>
               <Controller
                 name="ratingEnergy"
                 control={control}
@@ -224,7 +291,9 @@ export const AddWorkoutForm: React.FC<Props> = ({
           </GridItem>
           <GridItem colSpan={1}>
             <FormControl isInvalid={!!errors.ratingDifficulty}>
-              <FormLabel>Difficulty</FormLabel>
+              <FormLabel textTransform="uppercase" color="gray.400">
+                Difficulty
+              </FormLabel>
               <Controller
                 name="ratingDifficulty"
                 control={control}
@@ -244,7 +313,9 @@ export const AddWorkoutForm: React.FC<Props> = ({
           </GridItem>
           <GridItem colSpan={1}>
             <FormControl isInvalid={!!errors.ratingGeneral}>
-              <FormLabel>General</FormLabel>
+              <FormLabel textTransform="uppercase" color="gray.400">
+                General
+              </FormLabel>
               <Controller
                 name="ratingGeneral"
                 control={control}

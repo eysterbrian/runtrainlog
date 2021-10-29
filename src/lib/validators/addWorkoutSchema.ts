@@ -8,12 +8,14 @@ export const newWorkoutSchema = z.object({
     .nonempty()
     .min(10, { message: 'Must be at least 10 characters' }),
   distance: z.number({ invalid_type_error: 'A number is required' }).gt(0.1),
-  activeDuration: z.number().gt(5).optional(),
-  elevation: z.number().optional(),
+  activeDurationSeconds: z.number().gt(1).optional(),
+  elevation: z.number().gte(0).optional(),
   startTime: z
     // zod's will reject an ISO string using its built-in z.date() fn, so
     // we manually check whether the string version of a date is valid
     .union([z.date(), z.string().refine((val) => isValid(parseISO(val)))]),
+  paceMinPerMile: z.number().optional(),
+  avgHeartRate: z.number().gt(0).optional(),
 
   modality: z.nativeEnum(WorkoutModality, {
     errorMap: (issue, _ctx) => {

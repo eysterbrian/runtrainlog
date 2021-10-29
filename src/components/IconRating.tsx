@@ -1,5 +1,11 @@
 import React from 'react';
-import { IconButton, HStack, Icon, Colors } from '@chakra-ui/react';
+import {
+  IconButton,
+  ButtonGroup,
+  HStack,
+  Icon,
+  Colors,
+} from '@chakra-ui/react';
 import { TRatingsIcon, getRatingsIcon } from 'lib/utils/ratingsIcon';
 
 type Props = {
@@ -20,7 +26,13 @@ export const IconRating: React.FC<Props> = ({
   const MyIcon = getRatingsIcon(iconType);
 
   return (
-    <HStack align="center" spacing={1} justifyContent="center">
+    <ButtonGroup
+      mr="4"
+      align="center"
+      spacing={0}
+      size="sm"
+      variant="ghost"
+      justifyContent="center">
       {Array.from({ length: numOptions }, (_, idx) => {
         const color =
           hover !== -1
@@ -32,12 +44,11 @@ export const IconRating: React.FC<Props> = ({
             : 'brand.800';
         return (
           <IconButton
+            // boxSize="min-content"
             key={idx}
             aria-label={`${idx + 1}-star rating`}
             icon={<MyIcon />}
             color={color}
-            size="md"
-            variant="ghost"
             onClick={() => {
               setRating(idx + 1);
               onChange && onChange(idx + 1);
@@ -47,6 +58,6 @@ export const IconRating: React.FC<Props> = ({
           />
         );
       })}
-    </HStack>
+    </ButtonGroup>
   );
 };
