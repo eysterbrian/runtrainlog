@@ -15,7 +15,7 @@ type Props = {
   onChange?: (newVal: number) => void;
 };
 
-export const IconRating: React.FC<Props> = ({
+export const IconRatingPicker: React.FC<Props> = ({
   value,
   numOptions,
   iconType,

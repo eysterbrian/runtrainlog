@@ -52,7 +52,10 @@ async function main() {
       }),
       distance: faker.datatype.float({ min: 1, max: 20 }),
       elevation: faker.datatype.float({ min: 50, max: 1500 }),
-      paceMinPerMile: faker.datatype.float({ min: 60 / 13, max: 60 / 6 }),
+      paceSecPerMile: faker.datatype.float({
+        min: (60 / 13) * 60,
+        max: (60 / 6) * 60,
+      }),
       avgHeartRate: faker.datatype.number({ min: 100, max: 130 }),
       modality,
       workoutType:

@@ -50,7 +50,7 @@ import { fetchDeleteWorkout } from 'lib/queries/fetchDeleteWorkout';
 import { LoadingModal } from 'components/Loading';
 import { DeleteWorkoutConfirm } from './DeleteWorkoutAlert';
 import { getRatingsIconComponent } from './IconRatingDisplay';
-import { getMphToMinutesStr, getWeekOfYearStr } from 'lib/utils/units';
+import { getPaceStr, getWeekOfYearStr } from 'lib/utils/units';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 type Props = {
@@ -164,15 +164,15 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       },
       {
         Header: 'Pace',
-        accessor: 'paceMinPerMile',
+        accessor: 'paceSecPerMile',
         isNumeric: true,
         Cell: ({ value: mph }: { value: number }) =>
-          !mph ? '-' : getMphToMinutesStr(mph),
+          !mph ? '-' : getPaceStr(mph),
         disableGroupBy: true,
         aggregate: 'average',
         Aggregated: ({ value }) => (
-          <Tooltip label={`Avg ${getMphToMinutesStr(value)}`}>
-            <Text>{getMphToMinutesStr(value)}</Text>
+          <Tooltip label={`Avg ${getPaceStr(value)}`}>
+            <Text>{getPaceStr(value)}</Text>
           </Tooltip>
         ),
       },

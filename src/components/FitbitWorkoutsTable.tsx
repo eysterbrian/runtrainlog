@@ -25,7 +25,7 @@ import {
 } from '@chakra-ui/react';
 import { TFitbitActivity } from 'lib/queries/fetchFitbitActivities';
 import { format, parseISO } from 'date-fns';
-import { formatDurationFromSeconds, getMphToMinutesStr } from 'lib/utils/units';
+import { formatDurationFromSeconds, getPaceStr } from 'lib/utils/units';
 import {
   AddIcon,
   CheckIcon,
@@ -122,9 +122,9 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
       },
       {
         Header: 'Pace',
-        accessor: 'speed',
+        accessor: 'paceSecPerMile',
         isNumeric: true,
-        Cell: ({ value }) => (value ? getMphToMinutesStr(value) : ''),
+        Cell: ({ value }) => (value ? getPaceStr(value) : ''),
       },
       {
         Header: 'Avg Heart Rate',

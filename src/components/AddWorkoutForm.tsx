@@ -24,9 +24,10 @@ import { useSession } from 'next-auth/client';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from 'react-query';
-import { IconRating } from './IconRating';
+import { IconRatingPicker } from './IconRatingPicker';
 import { parseISO, format, addSeconds } from 'date-fns';
 import { toTitleCase } from 'lib/utils/stringUtils';
+import { MinSecPicker } from './MinSecPicker';
 
 export type SubmittingState = 'idle' | 'isSubmitting' | 'isSubmitted';
 type Props = {
@@ -66,16 +67,12 @@ export const AddWorkoutForm: React.FC<Props> = ({
             ),
             workoutType:
               fitbitActivity.modality !== 'RUN' ? 'CROSSTRAIN' : 'BASE',
-            activeDurationSeconds:
-              Math.round((fitbitActivity.activeDurationSeconds / 1000) * 100) /
-              100,
+            activeDurationSeconds: fitbitActivity.activeDurationSeconds,
             elevation: fitbitActivity?.elevationGain
               ? Math.round(fitbitActivity?.elevationGain)
               : 0,
-            fitbitLogId: fitbitActivity.logId.toString(),
-            paceMinPerMile: fitbitActivity?.speed
-              ? Math.round((60 / fitbitActivity.speed) * 100) / 100
-              : 0,
+            fitbitLogId: fitbitActivity.logId,
+            paceSecPerMile: fitbitActivity?.paceSecPerMile,
             avgHeartRate: fitbitActivity.averageHeartRate,
           },
     [fitbitActivity]
@@ -224,33 +221,6 @@ export const AddWorkoutForm: React.FC<Props> = ({
               </FormErrorMessage>
             </FormControl>
           </GridItem>
-          <GridItem colSpan={1} alignSelf="end">
-            <FormControl isInvalid={!!errors.activeDurationSeconds}>
-              <FormLabel>Duration</FormLabel>
-              <Input
-                type="number"
-                step="0.01"
-                {...register('activeDurationSeconds', { valueAsNumber: true })}
-              />
-              <FormErrorMessage>
-                {errors.activeDurationSeconds &&
-                  errors.activeDurationSeconds.message}
-              </FormErrorMessage>
-            </FormControl>
-          </GridItem>
-          <GridItem colSpan={1}>
-            <FormControl isInvalid={!!errors.paceMinPerMile}>
-              <FormLabel>Pace (min/mile)</FormLabel>
-              <Input
-                type="number"
-                step="0.01"
-                {...register('paceMinPerMile', { valueAsNumber: true })}
-              />
-              <FormErrorMessage>
-                {errors.paceMinPerMile && errors.paceMinPerMile.message}
-              </FormErrorMessage>
-            </FormControl>
-          </GridItem>
           <GridItem colSpan={1}>
             <FormControl isInvalid={!!errors.avgHeartRate}>
               <FormLabel>Heart Rate (bpm)</FormLabel>
@@ -266,6 +236,37 @@ export const AddWorkoutForm: React.FC<Props> = ({
           </GridItem>
         </SimpleGrid>
         <SimpleGrid mt={8} columns={2} spacing={4}>
+          <GridItem colSpan={1} alignSelf="end">
+            <FormControl isInvalid={!!errors.activeDurationSeconds}>
+              <FormLabel>Duration</FormLabel>
+              <Controller
+                name="activeDurationSeconds"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <MinSecPicker initTotalSeconds={value} onChange={onChange} />
+                )}
+              />
+              <FormErrorMessage>
+                {errors.activeDurationSeconds &&
+                  errors.activeDurationSeconds.message}
+              </FormErrorMessage>
+            </FormControl>
+          </GridItem>
+          <GridItem colSpan={1}>
+            <FormControl isInvalid={!!errors.paceSecPerMile}>
+              <FormLabel>Pace (min/mile)</FormLabel>
+              <Controller
+                name="paceSecPerMile"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <MinSecPicker initTotalSeconds={value} onChange={onChange} />
+                )}
+              />
+              <FormErrorMessage>
+                {errors.paceSecPerMile && errors.paceSecPerMile.message}
+              </FormErrorMessage>
+            </FormControl>
+          </GridItem>
           <GridItem colSpan={1}>
             <FormControl isInvalid={!!errors.ratingEnergy}>
               <FormLabel textTransform="uppercase" color="gray.400">
@@ -275,7 +276,7 @@ export const AddWorkoutForm: React.FC<Props> = ({
                 name="ratingEnergy"
                 control={control}
                 render={({ field: { value, onChange } }) => (
-                  <IconRating
+                  <IconRatingPicker
                     value={value}
                     onChange={onChange}
                     numOptions={5}
@@ -297,7 +298,7 @@ export const AddWorkoutForm: React.FC<Props> = ({
                 name="ratingDifficulty"
                 control={control}
                 render={({ field: { value, onChange } }) => (
-                  <IconRating
+                  <IconRatingPicker
                     value={value}
                     onChange={onChange}
                     numOptions={5}
@@ -319,7 +320,7 @@ export const AddWorkoutForm: React.FC<Props> = ({
                 name="ratingGeneral"
                 control={control}
                 render={({ field: { value, onChange } }) => (
-                  <IconRating
+                  <IconRatingPicker
                     value={value}
                     onChange={onChange}
                     numOptions={5}

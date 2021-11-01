@@ -5,8 +5,8 @@ import { format, addSeconds, getWeek, parseISO } from 'date-fns';
  * @param mph
  * @returns hh:mm string
  */
-export function getMphToMinutesStr(mph: number) {
-  const paceMinutes = addSeconds(new Date(0), (60 / mph) * 60);
+export function getPaceStr(paceSeconds: number) {
+  const paceMinutes = addSeconds(new Date(0), paceSeconds);
   return format(paceMinutes, 'm:ss');
 }
 

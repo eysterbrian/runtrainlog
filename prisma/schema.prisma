@@ -87,7 +87,7 @@ model Workout {
   activeDurationSeconds Float?
   distance              Float?
   elevation             Float?
-  paceMinPerMile        Float?
+  paceSecPerMile        Float?
   avgHeartRate          Int?
 
   // Descriptions
