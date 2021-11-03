@@ -13,13 +13,13 @@ import {
 
 type Props = {
   showDialog: UseDisclosureReturn;
-  workoutDateStr: string;
+  numWorkouts: number;
   onDeleteHandler: () => void;
 };
 
 export const DeleteWorkoutConfirm: React.FC<Props> = ({
   showDialog,
-  workoutDateStr,
+  numWorkouts,
   onDeleteHandler,
 }) => {
   const cancelRef = React.useRef<HTMLButtonElement | null>(null);
@@ -36,8 +36,8 @@ export const DeleteWorkoutConfirm: React.FC<Props> = ({
           </AlertDialogHeader>
 
           <AlertDialogBody>
-            Are you sure you want to delete the{' '}
-            <strong>{workoutDateStr}</strong> workout? You cannot undo this
+            Are you sure you want to delete the selected{' '}
+            <strong>{numWorkouts}</strong> workouts? You cannot undo this
             action.
           </AlertDialogBody>
 

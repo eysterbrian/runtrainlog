@@ -20,6 +20,9 @@ import {
   Text,
   Tooltip,
   MenuItemOption,
+  Checkbox,
+  CheckboxProps,
+  Flex,
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
@@ -41,12 +44,13 @@ import {
   useGroupBy,
   useExpanded,
   TableOptions,
+  useRowSelect,
 } from 'react-table';
 import { Workout } from '@prisma/client';
 import { useSession } from 'next-auth/client';
 import { useMutation, useQueryClient } from 'react-query';
 import { parseISO, format, isValid } from 'date-fns';
-import { fetchDeleteWorkout } from 'lib/queries/fetchDeleteWorkout';
+import { fetchDeleteManyWorkouts } from 'lib/queries/fetchDeleteWorkout';
 import { LoadingModal } from 'components/Loading';
 import { DeleteWorkoutConfirm } from './DeleteWorkoutAlert';
 import { getRatingsIconComponent } from './IconRatingDisplay';
@@ -55,6 +59,29 @@ import { useHotkeys } from 'react-hotkeys-hook';
 
 type Props = {
   workouts: Workout[];
+};
+
+/**
+ * Simple wrapper around ChakraUI's Checkbox to transfer prop values from the DOM API prop name to the non-standard
+ * prop names used by Chakra's Checkbox.
+ *
+ * This is required for several of react-table's
+ * built-in getXXXProps() methods to work properly.
+ *
+ * The transferred props are:
+ *    indeterminate -> isIndeterminiate (Chakra's prop name)
+ *    checked -> isChecked (Chakra's prop name)
+ */
+const IndeterminateCheckbox: React.FC<
+  CheckboxProps & { indeterminate?: boolean; checked?: boolean }
+> = ({ indeterminate, checked, ...props }) => {
+  return (
+    <Checkbox
+      isIndeterminate={typeof indeterminate === 'boolean' && indeterminate}
+      isChecked={typeof checked === 'boolean' && checked}
+      {...props}
+    />
+  );
 };
 
 /**
@@ -211,7 +238,10 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   const [session] = useSession();
 
   const queryClient = useQueryClient();
-  const deleteWorkoutMutation = useMutation(fetchDeleteWorkout, {
+
+  const toast = useToast();
+
+  const deleteManyWorkoutsMutation = useMutation(fetchDeleteManyWorkouts, {
     onSuccess: () => {
       console.log('Invalidate queries from addWorkout mutation');
       queryClient.invalidateQueries(['workouts', session?.user?.id]);
@@ -219,15 +249,15 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   });
 
   const showConfirmDelete = useDisclosure();
-  const [deleteRow, setDeleteRow] = React.useState<Workout>();
 
-  const toast = useToast();
+  // Store the list of workoutIds at the time when the delete button is pressed
+  const [deleteRowIds, setDeleteRowIds] = React.useState<string[]>([]);
 
   /**
-   * Delete the workout
+   * Delete the selected workouts
    */
-  const onDeleteWorkout = () => {
-    const deletedWorkout = deleteWorkoutMutation.mutate(deleteRow?.id ?? '', {
+  const onDeleteSelectedWorkouts = () => {
+    const deletedWorkouts = deleteManyWorkoutsMutation.mutate(deleteRowIds, {
       onError: (error) => {
         console.log(error);
         toast({
@@ -238,14 +268,9 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       onSuccess: (deletedWorkout) => {
         console.log('onSuccess', deletedWorkout);
 
-        const date: Date = parseISO(
-          deletedWorkout?.startTime as unknown as string
-        );
-        const dateStr = !date ? 'Unknown Date' : format(date, 'EEEE, M/d/y');
-
         toast({
-          title: 'Workout Deleted.',
-          description: `The workout from ${dateStr} is deleted.`,
+          title: 'Workouts Deleted',
+          description: `Successfully deleted ${deleteRowIds.length} workouts.`,
           status: 'success',
           duration: 9000,
           isClosable: true,
@@ -253,39 +278,11 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       },
       onSettled: () => {
         console.log('onSettled');
-        setDeleteRow(undefined);
+        setDeleteRowIds([]);
         showConfirmDelete.onClose();
       },
     });
   };
-
-  // Calculate date of the row to be deleted for use in confirmation dialog
-  let deleteRowDate: Date | undefined = undefined;
-  if (deleteRow) {
-    deleteRowDate = parseISO(deleteRow?.startTime as unknown as string);
-  }
-  const deleteWorkoutDateStr =
-    !deleteRowDate || !isValid(deleteRowDate)
-      ? 'Unknown Date'
-      : format(deleteRowDate, 'EEEE, M/d/y');
-
-  const DeleteIconButton: React.FC<{ row: Row<Workout> }> = React.useCallback(
-    ({ row }) => (
-      <IconButton
-        aria-label="Delete row"
-        icon={<DeleteIcon />}
-        size="md"
-        variant="ghost"
-        // BUG: button never gets disabled
-        disabled={deleteWorkoutMutation.isLoading}
-        onClick={() => {
-          setDeleteRow(row.original);
-          showConfirmDelete.onOpen();
-        }}
-      />
-    ),
-    [deleteWorkoutMutation.isLoading, showConfirmDelete]
-  );
 
   /**
    * Extends the default groupBy function by grouping by week number of the
@@ -318,13 +315,14 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     getTableProps,
     headerGroups,
     rows,
-    state,
+    flatRows,
     setAllFilters,
     prepareRow,
     allColumns,
     toggleGroupBy,
     setSortBy,
     toggleAllRowsExpanded,
+    state: { selectedRowIds, groupBy, sortBy },
   } = useTable(
     {
       columns,
@@ -339,12 +337,25 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     useGroupBy,
     useSortBy,
     useExpanded,
+    useRowSelect,
     (hooks) => {
       hooks.visibleColumns.push((columns) => [
         {
           id: 'modifyRow',
           accessor: 'id',
-          Cell: ({ row }) => <DeleteIconButton row={row} />,
+          Header: ({ getToggleAllRowsSelectedProps }) => (
+            <Flex>
+              <IndeterminateCheckbox {...getToggleAllRowsSelectedProps()} />
+            </Flex>
+          ),
+          Cell: ({ row }) => (
+            <Flex>
+              {' '}
+              <IndeterminateCheckbox
+                {...row.getToggleRowSelectedProps()}
+              />{' '}
+            </Flex>
+          ),
           disableGroupBy: true,
           disableSortBy: true,
         },
@@ -353,7 +364,25 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     }
   );
 
-  const isGroupByWeek = state.groupBy.includes('startTime');
+  const isGroupByWeek = groupBy.includes('startTime');
+
+  const handleDeleteRows = () => {
+    // Generate a list of workoutId strings for each selected row
+    //
+    // !! We can't just use 'selectedFlatRows' here because that array
+    // will only include visible / expanded rows that have been 'prepared'.
+    // Rows that haven't been expanded will not appear in that list.
+    // 'selectdRowIds' does correctly return the react-table row id for each
+    // row/subrow (whether expanded or not) that has been selected.
+    const selectedWorkouts = flatRows
+      .filter((row) => selectedRowIds[row.id])
+      .map((row) => row.original?.id);
+
+    // Set this array in our state, so the mutation can later use this value
+    setDeleteRowIds(selectedWorkouts);
+
+    showConfirmDelete.onOpen();
+  };
 
   /**
    * Handlers and hotkeys for groupby summaries and expand/collapse
@@ -365,16 +394,17 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     toggleGroupBy('startTime');
     // We're toggling groupBy 'on', so make sure to sort by startTime column as well
     if (!isGroupByWeek) {
-      setSortBy([...state.sortBy, { id: 'startTime', desc: false }]);
+      setSortBy([...sortBy, { id: 'startTime', desc: false }]);
     }
   }
+
   useHotkeys('ctrl+e', toggleSummaries);
 
   // react-table returns the key prop automatically
   /* eslint-disable react/jsx-key */
   return (
     <>
-      <LoadingModal showLoadingModal={deleteWorkoutMutation.isLoading} />
+      <LoadingModal showLoadingModal={deleteManyWorkoutsMutation.isLoading} />
       <HStack spacing={4}>
         <Box>
           <Menu closeOnSelect={true}>
@@ -468,6 +498,19 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
             </MenuList>
           </Menu>
         </Box>
+
+        <IconButton
+          aria-label="Delete rows"
+          icon={<DeleteIcon />}
+          size="md"
+          variant="ghost"
+          disabled={
+            deleteManyWorkoutsMutation.isLoading ||
+            showConfirmDelete.isOpen ||
+            Object.keys(selectedRowIds).length === 0
+          }
+          onClick={() => handleDeleteRows()}
+        />
       </HStack>
 
       <Table {...getTableProps()}>
@@ -552,8 +595,8 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
 
       <DeleteWorkoutConfirm
         showDialog={showConfirmDelete}
-        workoutDateStr={deleteWorkoutDateStr}
-        onDeleteHandler={onDeleteWorkout}
+        numWorkouts={deleteRowIds.length}
+        onDeleteHandler={onDeleteSelectedWorkouts}
       />
     </>
   );
