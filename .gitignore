@@ -19,6 +19,9 @@
 .DS_Store
 *.pem
 
+# Chrome dev profile
+/.vscode/chrome-debug-userdatadir
+
 # debug
 npm-debug.log*
 yarn-debug.log*
