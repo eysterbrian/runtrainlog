@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest --watch"
+    "test": "jest --watch",
+    "prisma-play": "ts-node --compiler-options {\\\"module\\\":\\\"commonjs\\\"} src/lib/server/_playground.ts"
   },
   "dependencies": {
     "@chakra-ui/icons": "^1.0.15",
