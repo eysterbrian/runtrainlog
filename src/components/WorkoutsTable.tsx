@@ -54,7 +54,12 @@ import { fetchDeleteManyWorkouts } from 'lib/queries/fetchDeleteWorkout';
 import { LoadingModal } from 'components/Loading';
 import { DeleteWorkoutConfirm } from './DeleteWorkoutAlert';
 import { getRatingsIconComponent } from './IconRatingDisplay';
-import { getPaceStr, getWeekOfYearStr } from 'lib/utils/units';
+import {
+  formatMinSecDurationFromSeconds,
+  formatHourMinDurationFromSeconds,
+  getPaceStr,
+  getWeekOfYearStr,
+} from 'lib/utils/units';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 type Props = {
@@ -154,6 +159,17 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
           ),
         Aggregated: ({ value }) => `${value} x-train`,
       },
+      {
+        Header: 'Duration',
+        accessor: 'activeDurationSeconds',
+        isNumeric: true,
+        disableGroupBy: true,
+        aggregate: 'sum',
+        Cell: ({ value }) => value && formatMinSecDurationFromSeconds(value),
+        Aggregated: ({ value }) => (
+          <Text>{value && formatHourMinDurationFromSeconds(value)}</Text>
+        ),
+      },
 
       {
         Header: 'Distance (miles)',
@@ -200,6 +216,19 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         Aggregated: ({ value }) => (
           <Tooltip label={`Avg ${getPaceStr(value)}`}>
             <Text>{getPaceStr(value)}</Text>
+          </Tooltip>
+        ),
+      },
+      {
+        Header: 'Heart Rate',
+        accessor: 'avgHeartRate',
+        isNumeric: true,
+        disableGroupBy: true,
+        Cell: ({ value }) => value && Math.round(value),
+        aggregate: 'average',
+        Aggregated: ({ value }) => (
+          <Tooltip label={`Avg ${Math.round(value)} bpm`}>
+            <Text>{value && Math.round(value)}</Text>
           </Tooltip>
         ),
       },

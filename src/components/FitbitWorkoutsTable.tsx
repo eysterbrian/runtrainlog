@@ -25,7 +25,7 @@ import {
 } from '@chakra-ui/react';
 import { TFitbitActivity } from 'lib/queries/fetchFitbitActivities';
 import { format, parseISO } from 'date-fns';
-import { formatDurationFromSeconds, getPaceStr } from 'lib/utils/units';
+import { formatMinSecDurationFromSeconds, getPaceStr } from 'lib/utils/units';
 import {
   AddIcon,
   CheckIcon,
@@ -136,7 +136,7 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
         accessor: 'activeDurationSeconds',
         isNumeric: true,
         filter: 'nonWorkouts',
-        Cell: ({ value }) => formatDurationFromSeconds(value),
+        Cell: ({ value }) => formatMinSecDurationFromSeconds(value),
       },
     ],
     []

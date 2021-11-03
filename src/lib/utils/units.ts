@@ -20,14 +20,26 @@ export function getMphToMinutes(mph: number) {
 }
 
 /**
- * Displays milliseconds value as m:ss
- * @param milliseconds
+ * Returns seconds value as m:ss
+ * @param seconds
  * @returns mm:ss where mm can exceed 59 minutes
  */
-export function formatDurationFromSeconds(totalSeconds: number) {
+export function formatMinSecDurationFromSeconds(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = Math.round(totalSeconds % 60);
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Returns seconds value as 'H hrs M min'
+ * @param seconds
+ * @returns mm:ss where mm can exceed 59 minutes
+ */
+export function formatHourMinDurationFromSeconds(totalSeconds: number) {
+  const roundedMinutes = Math.round(totalSeconds / 60);
+  const hours = Math.floor(roundedMinutes / 60);
+  const minutes = Math.round(roundedMinutes % 60);
+  return `${hours} hrs ${minutes} min`;
 }
 
 /**
