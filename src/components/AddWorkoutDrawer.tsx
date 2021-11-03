@@ -25,12 +25,17 @@ export const AddWorkoutDrawer: React.FC<Props> = ({ modalDisclosure }) => {
   const [submittingState, setSubmittingState] =
     React.useState<SubmittingState>('idle');
 
-  if (submittingState === 'isSubmitted') {
-    modalDisclosure.onClose();
+  // React won't let us setState() on another component from within the render method of
+  // this component.  So we need to call onClose() inside an effect to get it outside the render.
+  React.useEffect(() => {
+    if (submittingState === 'isSubmitted') {
+      modalDisclosure.onClose();
 
-    // Restore state so modal can re-open again sucessfully
-    setSubmittingState('idle');
-  }
+      // Restore state so modal can re-open again sucessfully
+      setSubmittingState('idle');
+    }
+  }, [submittingState, modalDisclosure]);
+
   return (
     <>
       <Drawer
