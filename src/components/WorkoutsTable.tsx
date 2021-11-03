@@ -177,8 +177,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         isNumeric: true,
         disableGroupBy: true,
         aggregate: 'sum',
-        Cell: ({ value }) =>
-          typeof value === 'number' ? Math.round(value * 100) / 100 : '-',
+        Cell: ({ value }) => (value ? Math.round(value * 100) / 100 : '-'),
         Aggregated: ({ value }) => (
           <Tooltip
             label={`Total ${(Math.round(value * 100) / 100).toLocaleString(
@@ -194,8 +193,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         isNumeric: true,
         disableGroupBy: true,
         aggregate: 'sum',
-        Cell: ({ value }) =>
-          typeof value === 'number' ? Math.round(value) : '-',
+        Cell: ({ value }) => (value ? Math.round(value) : '-'),
         Aggregated: ({ value }) => (
           <Tooltip
             label={`Total ${(Math.round(value * 10) / 10).toLocaleString(

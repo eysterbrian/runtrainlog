@@ -15,7 +15,6 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { fetchAddWorkout } from 'lib/queries/fetchAddWorkout';
 import { TFitbitActivity } from 'lib/queries/fetchFitbitActivities';
-import { modalityFromFitbitActivity } from 'lib/utils/fitbitUtils';
 import {
   newWorkoutSchema,
   TNewWorkoutSchema,
@@ -82,7 +81,7 @@ export const AddWorkoutForm: React.FC<Props> = ({
     handleSubmit,
     register,
     control,
-    formState: { errors, isSubmitting, isSubmitted },
+    formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<TNewWorkoutSchema>({
     resolver: zodResolver(newWorkoutSchema),
     defaultValues: fitbitValues,
@@ -115,19 +114,21 @@ export const AddWorkoutForm: React.FC<Props> = ({
       return;
     }
     // Determine the 3-way value based on 2 RHF fields: isSubmitted and isSubmitting
-    const newState: SubmittingState =
-      !isSubmitted && !isSubmitting
-        ? 'idle'
-        : isSubmitting
-        ? 'isSubmitting'
-        : 'isSubmitted';
+    let newState: SubmittingState = 'idle';
+    if (!isSubmitSuccessful && !isSubmitting) {
+      newState = 'idle';
+    } else if (isSubmitting) {
+      newState = 'isSubmitting';
+    } else if (isSubmitSuccessful) {
+      newState = 'isSubmitted';
+    }
     updateSubmitState(newState);
-  }, [isSubmitting, isSubmitted, updateSubmitState]);
+  }, [isSubmitting, isSubmitSuccessful, updateSubmitState]);
 
   function onSubmit(values: TNewWorkoutSchema) {
-    // console.log('💩 onSubmit - before mutation');
+    console.log('💩 onSubmit - before mutation', values);
     addWorkoutMutation.mutate(values);
-    // console.log('💩 onSubmit - after mutation');
+    console.log('💩 onSubmit - after mutation');
   }
 
   return (
@@ -195,7 +196,7 @@ export const AddWorkoutForm: React.FC<Props> = ({
           </GridItem>
         </SimpleGrid>
         <SimpleGrid columns={3} spacing={4} mt={8}>
-          <GridItem colSpan={1} alignSelf="end">
+          <GridItem colSpan={1} alignSelf="start">
             <FormControl isInvalid={!!errors.distance}>
               <FormLabel>Distance (miles)</FormLabel>
               <Input
@@ -208,7 +209,7 @@ export const AddWorkoutForm: React.FC<Props> = ({
               </FormErrorMessage>
             </FormControl>
           </GridItem>
-          <GridItem colSpan={1} alignSelf="end">
+          <GridItem colSpan={1} alignSelf="start">
             <FormControl isInvalid={!!errors.elevation}>
               <FormLabel>Elevation (ft)</FormLabel>
               <Input
@@ -221,7 +222,7 @@ export const AddWorkoutForm: React.FC<Props> = ({
               </FormErrorMessage>
             </FormControl>
           </GridItem>
-          <GridItem colSpan={1}>
+          <GridItem colSpan={1} alignSelf="start">
             <FormControl isInvalid={!!errors.avgHeartRate}>
               <FormLabel>Heart Rate (bpm)</FormLabel>
               <Input

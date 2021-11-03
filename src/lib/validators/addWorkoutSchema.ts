@@ -3,23 +3,18 @@ import { WorkoutModality, WorkoutType } from '.prisma/client';
 import { parseISO, isValid } from 'date-fns';
 
 export const newWorkoutSchema = z.object({
+  //
+  // Required fields
+  //
   description: z
     .string()
     .nonempty()
     .min(10, { message: 'Must be at least 10 characters' }),
-  distance: z
-    .number({ invalid_type_error: 'A number is required' })
-    .gt(0.1)
-    .optional(),
-  activeDurationSeconds: z.number().gt(1).optional(),
-  elevation: z.number().gte(0).optional(),
+  activeDurationSeconds: z.number().gt(1),
   startTime: z
     // zod's will reject an ISO string using its built-in z.date() fn, so
     // we manually check whether the string version of a date is valid
     .union([z.date(), z.string().refine((val) => isValid(parseISO(val)))]),
-  paceSecPerMile: z.number().optional(),
-  avgHeartRate: z.number().gt(0).optional(),
-
   modality: z.nativeEnum(WorkoutModality, {
     errorMap: (issue, _ctx) => {
       // Return generic error message for any enum errors
@@ -36,6 +31,14 @@ export const newWorkoutSchema = z.object({
       };
     },
   }),
+
+  //
+  // Optional fields
+  //
+  distance: z.number({ invalid_type_error: 'A number is required' }).optional(),
+  elevation: z.number().optional(),
+  paceSecPerMile: z.number().optional(),
+  avgHeartRate: z.number().gt(0).optional(),
 
   ratingEnergy: z
     .number({ required_error: 'A rating is required' })
@@ -55,10 +58,7 @@ export const newWorkoutSchema = z.object({
     .gte(1, { message: 'A rating is required' })
     .lte(5)
     .optional(),
-  fitbitLogId: z
-    .string()
-    .min(5, { message: 'Must be at least 5 digits' })
-    .optional(),
+  fitbitLogId: z.string().optional(),
 });
 
 export type TNewWorkoutSchema = z.infer<typeof newWorkoutSchema>;

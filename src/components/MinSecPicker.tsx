@@ -63,13 +63,7 @@ export const MinSecPicker: React.FC<Props> = ({
     <HStack
       width="max-content"
       border="1px solid var(--chakra-colors-whiteAlpha-300)" // HACK: should specify border color using chakra variable
-      rounded="md"
-      onFocus={(evt: React.FocusEvent) => {
-        console.log('Focused inside the component');
-      }}
-      onBlur={(evt: React.FocusEvent) => {
-        console.log('Blurred the component');
-      }}>
+      rounded="md">
       <NumberInput
         value={minutes}
         size="md"
