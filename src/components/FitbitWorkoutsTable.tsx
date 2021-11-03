@@ -7,6 +7,7 @@ import {
   FilterTypes,
   useFilters,
   useAsyncDebounce,
+  Filters,
 } from 'react-table';
 import { Workout, WorkoutModality } from '@prisma/client';
 import {
@@ -69,6 +70,14 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
         });
       },
     }),
+    []
+  );
+
+  /**
+   * Initial filter settings
+   */
+  const defaultFilters: Filters<TFitbitActivity> = React.useMemo(
+    () => [{ id: 'activeDurationSeconds', value: '' }],
     []
   );
 
@@ -155,6 +164,9 @@ export const FitbitWorkoutsTable: React.FC<Props> = ({ fitbitActivities }) => {
       columns,
       data: fitbitActivities,
       filterTypes,
+      initialState: {
+        filters: defaultFilters,
+      },
     },
     useFilters,
     useSortBy,
