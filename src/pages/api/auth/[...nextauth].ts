@@ -27,5 +27,5 @@ export default NextAuth({
       };
     },
   },
-  debug: true,
+  // debug: true,
 });

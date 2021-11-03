@@ -108,7 +108,6 @@ const HeaderNav: React.VFC = () => {
 
   const router = useRouter();
   const [session, sessionStatus] = useSession();
-  console.log('Session from headerNav: ', session);
 
   const toast = useToast();
 
