@@ -45,6 +45,7 @@ import {
   useExpanded,
   TableOptions,
   useRowSelect,
+  AggregatorFn,
 } from 'react-table';
 import { Workout } from '@prisma/client';
 import { useSession } from 'next-auth/client';
@@ -210,12 +211,15 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         Cell: ({ value: mph }: { value: number }) =>
           !mph ? '-' : getPaceStr(mph),
         disableGroupBy: true,
-        aggregate: 'average',
-        Aggregated: ({ value }) => (
-          <Tooltip label={`Avg ${getPaceStr(value)}`}>
-            <Text>{getPaceStr(value)}</Text>
-          </Tooltip>
-        ),
+        aggregate: 'averageIgnoreEmpty',
+        Aggregated: ({ value }) =>
+          typeof value === 'number' ? (
+            <Tooltip label={`Avg ${getPaceStr(value)}`}>
+              <Text>{getPaceStr(value)}</Text>
+            </Tooltip>
+          ) : (
+            '-'
+          ),
       },
       {
         Header: 'Heart Rate',
@@ -223,7 +227,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         isNumeric: true,
         disableGroupBy: true,
         Cell: ({ value }) => value && Math.round(value),
-        aggregate: 'average',
+        aggregate: 'averageIgnoreEmpty',
         Aggregated: ({ value }) => (
           <Tooltip label={`Avg ${Math.round(value)} bpm`}>
             <Text>{value && Math.round(value)}</Text>
@@ -236,7 +240,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         isNumeric: true,
         Cell: getRatingsIconComponent('Energy'),
         disableGroupBy: true,
-        aggregate: 'average',
+        aggregate: 'averageIgnoreEmpty',
         Aggregated: ({ value }) => `${Math.round(value * 10) / 10}`,
       },
       {
@@ -245,7 +249,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         isNumeric: true,
         Cell: getRatingsIconComponent('Difficulty'),
         disableGroupBy: true,
-        aggregate: 'average',
+        aggregate: 'averageIgnoreEmpty',
         Aggregated: ({ value }) => `${Math.round(value * 10) / 10}`,
       },
       {
@@ -254,7 +258,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
         isNumeric: true,
         Cell: getRatingsIconComponent('Star'),
         disableGroupBy: true,
-        aggregate: 'average',
+        aggregate: 'averageIgnoreEmpty',
         Aggregated: ({ value }) => `${Math.round(value * 10) / 10}`,
       },
     ],
@@ -337,6 +341,30 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     );
   }, []);
 
+  /**
+   * Define a custom averaging aggregation function which skips any values that are nullish (including 0)
+   * when calculating the average.  This will be used to calculate correct average in columns where some
+   * of the data may be missing.
+   */
+  const averageIgnoreEmpty: AggregatorFn<Workout> = (values) => {
+    let numVals = 0;
+    let sum = 0;
+    for (const val of values) {
+      if (typeof val === 'number' && val !== 0) {
+        numVals++;
+        sum += val;
+      }
+    }
+    if (numVals > 0) {
+      return sum / numVals;
+    } else {
+      return null;
+    }
+  };
+
+  /**
+   * And now... The big react-table userTable hook!!!
+   */
   const {
     getTableBodyProps,
     getTableProps,
@@ -355,6 +383,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       columns,
       data: workouts,
       groupByFn: groupByWeek,
+      aggregations: { averageIgnoreEmpty },
       initialState: {
         groupBy: ['startTime'],
         sortBy: [{ id: 'startTime', desc: true }],
@@ -391,6 +420,7 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
     }
   );
 
+  // We are grouping are rows by week if we're grouping by the startTime column
   const isGroupByWeek = groupBy.includes('startTime');
 
   const handleDeleteRows = () => {
