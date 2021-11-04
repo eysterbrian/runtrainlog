@@ -414,8 +414,22 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
   /**
    * Handlers and hotkeys for groupby summaries and expand/collapse
    */
-  useHotkeys('cmd+e', () => toggleAllRowsExpanded(true));
-  useHotkeys('cmd+shift+e', () => toggleAllRowsExpanded(false));
+
+  // Even though toggleAllRowsExpanded() is a true toggle, useHotkeys memoizes
+  // its callback, so we need to explicitly call the callback with the
+  // toggle state.
+  const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
+  useHotkeys(
+    'cmd+e',
+    () => {
+      setIsExpanded(!isExpanded);
+      toggleAllRowsExpanded(isExpanded);
+    },
+    {},
+    // useHotkeys memoizes the callback function, so we need to regenerate
+    // the function after each change of expand/collapse
+    [isExpanded]
+  );
 
   function toggleSummaries() {
     toggleGroupBy('startTime');
@@ -424,7 +438,6 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
       setSortBy([...sortBy, { id: 'startTime', desc: false }]);
     }
   }
-
   useHotkeys('ctrl+e', toggleSummaries);
 
   // react-table returns the key prop automatically
@@ -448,15 +461,8 @@ export const WorkoutsTable: React.FC<Props> = ({ workouts }) => {
               <MenuItem command="^E" onClick={toggleSummaries}>
                 {isGroupByWeek ? 'Hide' : 'Show'} Weekly Summary
               </MenuItem>
-              <MenuItem
-                command="⌘E"
-                onClick={() => toggleAllRowsExpanded(true)}>
-                Expand All
-              </MenuItem>
-              <MenuItem
-                command="⇧⌘E"
-                onClick={() => toggleAllRowsExpanded(false)}>
-                Collapse All
+              <MenuItem command="⌘E" onClick={() => toggleAllRowsExpanded()}>
+                Expand/Collapse All
               </MenuItem>
             </MenuList>
           </Menu>
